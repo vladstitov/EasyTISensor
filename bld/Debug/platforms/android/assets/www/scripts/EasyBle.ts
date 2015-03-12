@@ -1,7 +1,7 @@
 ﻿/// <reference path="typings/evothingsble.d.ts" />
-module easyble {
-    import ble = evothings.ble;
-
+module easy_ble {
+   // import ble = evothings.ble;
+    //evothings.ble
     interface BleService {
         serviceUUID: string;
         __characteristics: any[];
@@ -28,7 +28,7 @@ module easyble {
                         fail('Service not found: ' + uuid);
                         return;
                     }
-                    ble.characteristics(device.deviceHandle, service.handle,(characteristics) => this.characteristicsCallbackFun(service, characteristics, win, fail), fail);
+                    evothings.ble.characteristics(device.deviceHandle, service.handle,(characteristics) => this.characteristicsCallbackFun(service, characteristics, win, fail), fail);
                 }
             }
             else {
@@ -51,7 +51,7 @@ module easyble {
                 characteristic.__descriptors.push(descriptor);
                 this.device.__uuidMap[characteristic.uuid + ':' + descriptor.uuid] = descriptor;
             }
-            if (0 == this.readCounter) win(device);
+            if (0 == this.readCounter) win(this.device);
             
         
         }
@@ -59,12 +59,13 @@ module easyble {
         characteristicsCallbackFun(service: BleService, characteristics,win,fail) {
             --this.readCounter;
             this.readCounter += characteristics.length;
+            if (!service.__characteristics) service.__characteristics = [];
             for (var i = 0; i < characteristics.length; ++i) {
                 var characteristic = characteristics[i];
                 service.__characteristics.push(characteristic);
                 this.device.__uuidMap[characteristic.uuid] = characteristic; 
                               
-                ble.descriptors(this.device.deviceHandle, characteristic.handle,(descriptors) => this.descriptorsCallbackFun(characteristic, descriptors,win),fail);
+                evothings.ble.descriptors(this.device.deviceHandle, characteristic.handle,(descriptors) => this.descriptorsCallbackFun(characteristic, descriptors,win),fail);
             }
         }
     }
@@ -73,27 +74,30 @@ module easyble {
 
     export class BleDevice {
         deviceHandle: number;
-        __uuidMap: any;
-        __services: any[];
-        constructor(private easy:EasyBle,public address: string, public rssi: number,public name: string) {
+        __uuidMap: any = {};
+        __services: any[]=[];
+        constructor(private easy:BleConnect,public address: string, public rssi: number,public name: string) {
 
         }
-        connect = function (win, fail) {
+        connect(win, fail) {
+
             this.easy.connectToDevice(this, win, fail);
         }
        
         close() {
-            this.deviceHandle && ble.close(this.deviceHandle);
+            this.deviceHandle && evothings.ble.close(this.deviceHandle);
         }        
         readRSSI (win, fail) {
-            ble.rssi(this.deviceHandle, win, fail);
+            evothings.ble.rssi(this.deviceHandle, win, fail);
         }
 		/** Read all service info for the specified service UUIDs.
 		// If serviceUUIDs is null, info for all services is read
 		// (this can be time-consuming compared to reading a
 		// selected number of services). */
 
-        private onServices(serviceUUIDs,services,win:Function,fail:Function): void {
+        private onServices(serviceUUIDs, services, win: Function, fail: Function): void {
+            console.log('onServices')
+            console.log(services);
             this.__services = []
             for (var i = 0; i < services.length; ++i) {
                 var service = services[i];
@@ -105,22 +109,61 @@ module easyble {
 
         readServices(serviceUUIDs, win, fail) {          
           console.log('serviceUUIDs ', serviceUUIDs);
-          ble.services(this.deviceHandle,(services) => this.onServices(serviceUUIDs,services,win,fail),fail);
+          evothings.ble.services(this.deviceHandle,(services) => this.onServices(serviceUUIDs,services,win,fail),fail);                  
+        }  
+        readCharacteristic(characteristicUUID, win, fail) {
+            var characteristic = this.__uuidMap[characteristicUUID];
+            if (!characteristic) fail('Characteristic not found: ' + characteristicUUID);                
+            else evothings.ble.readCharacteristic(this.deviceHandle, characteristic.handle, win, fail);
+        }
 
-                  
-        }    
+       
+        readDescriptor (characteristicUUID, descriptorUUID, win, fail) {
+            var descriptor = this.__uuidMap[characteristicUUID + ':' + descriptorUUID];
+            if (!descriptor)  fail('Descriptor not found: ' + descriptorUUID);
+           else  evothings.ble.readDescriptor(this.deviceHandle, descriptor.handle, function () { win(); }, function (errorCode) { fail(errorCode); });
+        }
+
+        /** Write value of characteristic. */
+        writeCharacteristic(characteristicUUID, value, win, fail) {
+            var characteristic = this.__uuidMap[characteristicUUID];
+            if (!characteristic)  fail('Characteristic not found: ' + characteristicUUID);
+             else  evothings.ble.writeCharacteristic(this.deviceHandle, characteristic.handle, value, function () { win(); }, function (errorCode) { fail(errorCode); });
+        }
+
+       
+        writeDescriptor(characteristicUUID, descriptorUUID, value, win, fail) {
+            var descriptor = this.__uuidMap[characteristicUUID + ':' + descriptorUUID];
+            if (!descriptor)fail('Descriptor not found: ' + descriptorUUID);
+            else evothings.ble.writeDescriptor(this.deviceHandle, descriptor.handle, value, function () { win(); }, function (errorCode) { fail(errorCode); });
+        }
+
+       
+        enableNotification(characteristicUUID, win, fail) {
+            var characteristic = this.__uuidMap[characteristicUUID];
+            if (!characteristic)  fail('Characteristic not found: ' + characteristicUUID);             
+            else  evothings.ble.enableNotification(this.deviceHandle, characteristic.handle, win, fail);
+            console.log('enableNotification ', this.deviceHandle, characteristic.handle);
+        }       
+        disableNotification = function (characteristicUUID, win, fail) {
+            var characteristic = this.__uuidMap[characteristicUUID];
+            if (!characteristic) fail('Characteristic not found: ' + characteristicUUID);             
+           else  evothings.ble.disableNotification(this.deviceHandle, characteristic.handle, win, fail);
+            console.log('disableNotification ', this.deviceHandle, characteristic.handle);
+        }
+        
+          
 
     }
 
 
     
-    export class EasyBle {
+    export class BleConnect {
         knownDevices: {} = {};
         connectedDevices: {} = {}
         reportOnce: boolean = false;
         name: string = 'EasyBle';
-        constructor(device: BleDevice) {
-
+        constructor() {
         }
 
 
@@ -136,36 +179,35 @@ module easyble {
             this.reportOnce = reportOnce;
         }
         stopScan(): void {
-            ble.stopScan((result)=>this.onStopScanSuccess(result),(result)=>this.onFail(result));
+            evothings.ble.stopScan((result)=>this.onStopScanSuccess(result),(result)=>this.onFail(result));
         }
         private onScanComplete(device: { address: string; rssi: number;name:string}, win: Function): void {
             var existingDevice: BleDevice = this.knownDevices[device.address]
             if (existingDevice) {
-
                 if (this.reportOnce) { return; }
                 existingDevice.rssi = device.rssi;
                 existingDevice.name = device.name;
                 win(existingDevice);
             } else {
-                this.knownDevices[device.address] = new BleDevice(this,device.address,device.rssi,device.name);                
-                //this.addMethodsToDeviceObject(device);                 
-                win(device);
-
+                var dev: BleDevice  = new BleDevice(this, device.address, device.rssi, device.name);   
+                this.knownDevices[device.address] = dev;                            
+                win(dev);
             }
         }
 
         startScan(win: Function, fail: Function) {
             this.stopScan();
             this.knownDevices = {};
-            ble.startScan((device) => this.onScanComplete(device, win), fail);
+            evothings.ble.startScan((device) => this.onScanComplete(device, win), fail);
 
         }
 
-        private onDeviceConnect(device: BleDevice, connectInfo: { state: number; deviceHandle:number}, win:Function,fail:Function): void {
+        private onDeviceConnect(device: BleDevice, connectInfo: { state: number; deviceHandle: number }, win: Function, fail: Function): void {
+            console.log('onDeviceConnect ', connectInfo);
             if (connectInfo.state == 2) {// connected			
                 device.deviceHandle = connectInfo.deviceHandle;
                 device.__uuidMap = {};
-                this.connectedDevices[device.address] = device;
+                this.connectedDevices[device.address] = device
                 win(device);
             }
             else if (connectInfo.state == 0) {// disconnected           
@@ -179,8 +221,9 @@ module easyble {
             }
 
         }
+
         connectToDevice(device: BleDevice, win: (device: BleDevice) => void, fail:Function):void {
-            ble.connect(device.address,(connectInfo: { state: number; deviceHandle: number }) => this.onDeviceConnect(device, connectInfo, win, fail), fail);
+            evothings.ble.connect(device.address,(connectInfo: { state: number; deviceHandle: number }) => this.onDeviceConnect(device, connectInfo, win, fail), fail);
         }
 
     }

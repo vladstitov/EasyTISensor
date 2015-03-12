@@ -251,8 +251,7 @@ var TISensorTag = (function()
 			var closestDevice = null
 			var strongestRSSI = -1000
 			easyble.startScan(
-				function(device)
-				{
+				function(device){
 					// Connect if we have found a sensor tag.
 					if (sensortag.deviceIsSensorTag(device)
 						&& device.rssi != 127 // Invalid RSSI value

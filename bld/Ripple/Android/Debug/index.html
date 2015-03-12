@@ -29,7 +29,8 @@
 	if (window.hyper) { console.log = hyper.log; }
 	</script>
 	<script src="cordova.js"></script>
-	<script src="scripts/easy-ble.js"></script>
+	<script src="scripts/EasyBle.js"></script>
+    <!--<script src="scripts/easy-ble.js"></script>-->
 	<script src="scripts/ti-sensortag.js"></script>
 </head>
 <body>
@@ -45,10 +46,13 @@
 
 	<script>
 	// SensorTag object.
-	var sensorTag = TISensorTag.createInstance()
-
+       
+        var easyble
+        var sensorTag
 	function initialiseSensortag()
-	{
+        {
+	    easyble = new evoble.BleConnect();
+	    sensorTag = TISensorTag.createInstance();
 		// Here sensors are set up.
 		// First parameter is the callback function.
 		// Accelerometer, Magnetometer and Gyroscope take a

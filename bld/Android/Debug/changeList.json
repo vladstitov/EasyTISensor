@@ -1,11 +1,15 @@
 {
   "changedFilesIos": [
-    "scripts\\ti-sensortag.js"
+    "scripts\\ti-sensortag.js",
+    "index.html",
+    "scripts\\easy-ble.js"
   ],
   "deletedFilesIos": [],
   "addedPluginsIos": [],
   "deletedPluginsIos": [],
-  "changedFiles": [],
+  "changedFiles": [
+    "index.html"
+  ],
   "deletedFiles": [],
   "addedPlugins": [],
   "deletedPlugins": []

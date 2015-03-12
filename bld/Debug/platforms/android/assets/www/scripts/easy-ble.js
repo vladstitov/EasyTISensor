@@ -277,7 +277,6 @@ var easyble = (function(){
 			fail('Descriptor not found: ' + descriptorUUID);
 			return;
 		}
-
 		evothings.ble.readDescriptor(device.deviceHandle,descriptor.handle,	value,function(){	win();	},	function(errorCode)	{	fail(errorCode);});
 	};
 
