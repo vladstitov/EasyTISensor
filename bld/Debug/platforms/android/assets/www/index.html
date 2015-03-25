@@ -10,156 +10,102 @@
 	<title>TI SensorTag Demo</title>
 	<link rel="stylesheet" href="css/common.css" />
 	<style>
-	body {
-		background: rgb(25,25,25);
-		color: rgb(255,255,255);
-		font-size: 100%;
-		padding: 0px 20px;
-	}
-	.SensorData {
-		font-size: 120%;
-		font-weight: bold;
-	}
-	.SensorData span {
-		font-weight: normal;
-	}
-	</style>
-	<script>
-	// Redirect console.log to Evothings Workbench.
-	if (window.hyper) { console.log = hyper.log; }
-	</script>
+        /*Reset*/
+
+/*General*/
+
+
+/*Lists*/
+html{color:#000;background:#fff}body,div,dl,dt,dd,ul,ol,li,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0}table{border-collapse:collapse;border-spacing:0}fieldset,img{border:0}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal}ol,ul{list-style:none}caption,th{text-align:left}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal}q:before,q:after{content:''}abbr,acronym{border:0;font-variant:normal}sup{vertical-align:text-top}sub{vertical-align:text-bottom}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;font-size:100%}legend{color:#000}
+
+a {
+ text-decoration: none;
+ color:inherit;
+ font-size:70%;
+}
+a.btn{
+     font-size:110%;
+     margin:0.5em;     
+     border:solid thin gray;
+}
+
+
+li>a{
+    background-color:#4f4d4d;   
+    color:white;
+    display:block;
+    margin:0.5em;
+    padding:0.5em;
+    text-indent:1em;
+    text-align:left;
+}
+
+li>a.active{
+    background-color:#191cc3;
+}
+
+.service a.read{
+    background-color:#b6ff00;
+}
+.service a.write{
+    background-color:#f5cece;
+}
+.service a.notify{
+    background-color:#b9dffc;
+}
+
+.header{
+    display:block; 
+
+}
+
+ h1{
+     background-color:#000;   
+    color:white;
+    display:block;
+    margin:0.5em;
+    padding:0.5em;  
+    text-align:center;
+
+}
+ .service div{
+     padding-left:1.5em;
+ }
+	
+	</style>	
 	<script src="cordova.js"></script>
-	<script src="scripts/EasyBle.js"></script>
-    <!--<script src="scripts/easy-ble.js"></script>-->
-	<script src="scripts/ti-sensortag.js"></script>
+    <script src="scripts/jquery-2.1.3.min.js"></script>
+	<script src="scripts/EasyBle.js"></script>     
+    <script src="scripts/DeviceView.js"></script>
+    <script src="scripts/TISensorTag.js"></script>
+    
+
 </head>
 <body>
-	<h1>TI SensorTag</h1>
-	<div class="SensorData">Status: <span id="StatusData">Ready to connect</span></div>
-	<div class="SensorData">Keypress: <span id="KeypressData">[Waiting for value]</span></div>
-	<div class="SensorData">IRTemperature:<br/><span id="IRTemperatureData">[Waiting for value]</span></div>
-	<div class="SensorData">Accelerometer:<br/><span id="AccelerometerData">[Waiting for value]</span></div>
-	<div class="SensorData">Humidity:<br/><span id="HumidityData">[Waiting for value]</span></div>
-	<div class="SensorData"">Magnetometer:<br/><span id="MagnetometerData">[Waiting for value]</span></div>
-	<div class="SensorData">Barometer:<br/><span id="BarometerData">[Waiting for value]</span></div>
-	<div class="SensorData">Gyroscope:<br/><span id="GyroscopeData">[Waiting for value]</span></div>
-
+	<h1>BLE</h1>	
+    <div id="scanner">        
+        <a id="scan" class="btn" href="#">Scan</a> 
+        <div id="status"></div>
+    </div>
+    <div id="deviceView">
+        <h1 id="title" ></h1>
+       
+    </div>
+	
 	<script>
+        var CLICK = 'click';
+        var CHANGE = 'change';
 	// SensorTag object.
        
-        var easyble
+      //  var easyble
         var sensorTag
-	function initialiseSensortag()
-        {
-	    easyble = new easy_ble.BleConnect();
-	    sensorTag = TISensorTag.createInstance();
-		// Here sensors are set up.
-		// First parameter is the callback function.
-		// Accelerometer, Magnetometer and Gyroscope take a
-		// millisecond update interval as the last parameter.
-		// Gyroscope takes the axes to enable as second parameter:
-		// 1 to enable X axis only, 2 to enable Y axis only, 3 = X and Y,
-		// 4 = Z only, 5 = X and Z, 6 = Y and Z, 7 = X, Y and Z.
-		sensorTag
-			.statusCallback(statusHandler)
-			.errorCallback(errorHandler)
-			.keypressCallback(keypressHandler)
-			//.irTemperatureCallback(irTemperatureHandler)
-			//.humidityCallback(humidityHandler)
-			//.barometerCallback(barometerHandler)
-			//.accelerometerCallback(accelerometerHandler, 200)
-			//.magnetometerCallback(magnetometerHandler, 200)
-			//.gyroscopeCallback(gyroscopeHandler, 7, 200) // 7 = enable all axes.
-			.connectToClosestDevice()
+        function initialiseSensortag() {       
+
+            var view = new ti.ScannerView();
 	}
 
-	function statusHandler(status)
-	{
-		displayValue('StatusData', status)
-	}
-
-	function errorHandler(error)
-	{
-		displayValue('StatusData', 'Error: ' + error)
-		if ('disconnected' == error)
-		{
-			// If disconneted attempt to connect again.
-			setTimeout(
-				function() { sensorTag.connectToClosestDevice() },
-				1000)
-		}
-	}
-
-	function keypressHandler(data)
-	{
-		displayValue('KeypressData', data[0])
-
-		if (data[0] == 1)
-		{
-			document.body.style.background = 'red'
-		}
-		else
-		if (data[0] == 2)
-		{
-			document.body.style.background = 'blue'
-		}
-	}
-
-	function irTemperatureHandler(data)
-	{
-		displayValue(
-			'IRTemperatureData',
-			data[0] + ',' + data[1] + ',' + data[2] +  ',' + data[3])
-	}
-
-	function accelerometerHandler(data)
-	{
-		//console.log('length: ' + data.length)
-		//console.log('acceldata: ' + data[0] + ' ' + data[1] + ' ' + data[2])
-
-		var x = data[0] / 16
-		var y = data[1] / 16
-		var z = data[2] / 16
-		var g = Math.sqrt((x*x)+(y*y)+(z*z))
-		displayValue(
-			'AccelerometerData',
-			'x = ' + x + '<br/>y = ' + y + '<br/>z = ' + z + '<br/>g = ' + g)
-	}
-
-	function humidityHandler(data)
-	{
-		displayValue(
-			'HumidityData',
-			data[0] + ',' + data[1] + ',' + data[2] + ',' + data[3])
-	}
-
-	function magnetometerHandler(data)
-	{
-		displayValue(
-			'MagnetometerData',
-			data[0] + ',' + data[1] + ',' + data[2])
-	}
-
-	function barometerHandler(data)
-	{
-		displayValue(
-			'BarometerData',
-			data[0] + ',' + data[1] + ',' + data[2] + ',' + data[3])
-	}
-
-	function gyroscopeHandler(data)
-	{
-		displayValue(
-			'GyroscopeData',
-			data[0] + ',' + data[1] + ',' + data[2] + ','
-			+ data[3] + ',' + data[4] + ',' + data[5])
-	}
-
-	function displayValue(elementId, value)
-	{
-		document.getElementById(elementId).innerHTML = value
-	}
-
+	
+	
 	document.addEventListener('deviceready', initialiseSensortag, false)
 	</script>
 </body>

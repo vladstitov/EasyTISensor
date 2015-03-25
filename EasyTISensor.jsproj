@@ -123,6 +123,7 @@
     <Content Include="plugins\com.evothings.ble\tests\test.html" />
     <Content Include="scripts\easy-ble.js" />
     <Content Include="scripts\ti-sensortag.js" />
+    <Content Include="scripts\TISensorTag.js" />
     <Folder Include="images\" />
     <Content Include="merges\android\scripts\android2.3-jscompat.js" />
     <Content Include="merges\android\scripts\platformOverrides.js" />
@@ -144,6 +145,7 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="index.html" />
+    <TypeScriptCompile Include="scripts\DeviceView.ts" />
     <TypeScriptCompile Include="scripts\EasyBle.ts" />
     <TypeScriptCompile Include="scripts\index.ts" />
     <TypeScriptCompile Include="scripts\platformOverrides.ts" />
@@ -197,6 +199,7 @@
     <Content Include="res\screens\windows\SplashScreen.scale-240.png" />
     <Content Include="res\screens\wp8\screen-portrait.jpg" />
     <TypeScriptCompile Include="scripts\TISensorTag.ts" />
+    <TypeScriptCompile Include="scripts\TISesorEvoProxy.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\cordova.d.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\BatteryStatus.d.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\Camera.d.ts" />
@@ -217,6 +220,7 @@
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\Vibration.d.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\WebSQL.d.ts" />
     <TypeScriptCompile Include="scripts\typings\evothingsble.d.ts" />
+    <TypeScriptCompile Include="scripts\typings\jquery.d.ts" />
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptToolsVersion>1.4</TypeScriptToolsVersion>
