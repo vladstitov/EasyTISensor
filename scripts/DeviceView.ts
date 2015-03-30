@@ -1,40 +1,59 @@
 ﻿/// <reference path="typings/jquery.d.ts" />
 /// <reference path="tisensortag.ts" />
-/// <reference path="easyble.ts" />
-module ti {
+/// <reference path="bleio.ts" />
+module bleio {
     declare var CLICK: string
 
     export class ScannerView {
       
         private status: JQuery;       
         private btnScanner: JQuery;
-        private scanner: ti.BleScanner
-        private deviceView: DeviceView
-        private myDevice: ti.BleDevice;
-        constructor() {
-         
+        private btnConnect: JQuery;
+        private scanner: bleio.BleScanner
+        private deviceView: DeviceView       
+        private device: bleio.BleDevice;
+        private knownDevices: any;
+        onFound: Function;
+       
+        constructor() {         
             this.status = $('#status');           
             this.btnScanner = $('#scan').data('state', 'scan').on(CLICK,(evt) => this.onScanClick(evt));
-            this.scanner = new ti.BleScanner()
+           
+            this.scanner = new bleio.BleScanner()
+            this.clear();
         }
 
-
-        private onFoundDevice(device: ti.BleDevice): void {    
-            this.myDevice = device;            
-            this.status.text('Found ' + device.name);
-            this.btnScanner.data('state', 'connect');
-            this.btnScanner.text('Connect');
-            this.scanner.stopScan();
+        clear() {
+            this.knownDevices = {};
         }
-
-        private onConnected(name:string): void {           
-            this.status.text('Connected');
-            this.btnScanner.data('state', 'connected');
-            this.btnScanner.text('Disconnect');
-            this.deviceView.populateServices($('<div>').appendTo($('#deviceView')));
-
+      
+       
+        private onFoundDevice(device: bleio.BleDevice): void {    
+            var existingDevice: BleDevice = this.knownDevices[device.address]
+            if (existingDevice) {
+                existingDevice.rssi = device.rssi;    
+                     
+            } else {        
+               // console.log(device);   
+                    var dev: BleDevice = new BleDevice(device.address, device.rssi, device.name);
+                    this.knownDevices[device.address] = dev;
+                    this.status.text('Found ' + device.name);
+                    this.device = dev;
+                    this.deviceView = null;
+                    this.stopScan();                    
+                    this.onFound(dev);        
+                
+            }
+           
+        }      
+     
+        stopScan(): void {
+            this.status.text('Scan');
+            this.btnScanner.data('state', 'scan');
+            this.btnScanner.text('Scan');
+            this.scanner.stopScan(() => { });           
         }
-        private onDeviceFound(device: ti.BleDevice): void {
+        private onDeviceFound(device: bleio.BleDevice): void {
             if ((device != null) && (device.name != null)) this.onFoundDevice(device);
         }
         private onScanClick(evt: JQueryEventObject): void {
@@ -44,38 +63,12 @@ module ti {
                 case 'scan':
                     el.data('state', 'scanning');
                     this.status.text('Scanning...');
-                    this.btnScanner.text('Stop Scan');
-                    this.scanner.stopScan();
-                    this.scanner.reportDeviceOnce(true);
-                    this.scanner.scanTime(2000);
+                    this.btnScanner.text('Stop Scan');                                             
                     this.scanner.startScan((device) => this.onDeviceFound(device));
                     break;
                 case 'scanning':
-                    this.status.text('Stoped Scan');                   
-                    this.btnScanner.data('state', 'scan');
-                    this.btnScanner.text('Scan');
-                    this.scanner.stopScan();
-                    break;
-
-                case 'connect':
-                    this.status.text('Connecting');
-                    this.btnScanner.data('state', 'connecting');
-                    this.btnScanner.text('Disconnect');
-                    if (!this.deviceView) this.deviceView = new DeviceView(this.myDevice,(name:string)=>this.onConnected(name));
-                    else this.deviceView.reconnect();             
-                    break;
-                case 'disconnect':
-                    this.status.text('Disconnected');
-                    this.btnScanner.data('state', 'connect');
-                    this.btnScanner.text('Re-connect');
-                    if (this.deviceView) this.deviceView.disconnect();                                      
-                    break;
-                case 'connected':
-                    this.status.text('Disconnecting');
-                    this.btnScanner.data('state', 'connect');
-                    this.btnScanner.text('Re-connect');
-                    if (this.deviceView) this.deviceView.disconnect();
-                    break;
+                    this.stopScan();
+                    break;              
 
             }
 
@@ -90,34 +83,51 @@ module ti {
         private status: JQuery;
        
         private scan: JQuery;
-        private save: JQuery;
+     ///   private save: JQuery;
        
-        
+        private btnConnect: JQuery;
        
         // private device: evoble.BleDevice;
-        private services: ti.BleService[];
-        private library: LibraryGages;
-        
-        view: JQuery
+        private services: bleio.BleService[];
+        private library: LibraryGages;        
+       
 
-        constructor(private device: ti.BleDevice, private onConnected: Function) {
-            this.title = $('#title');           
+        getDevice(): bleio.BleDevice {
+            return this.device;
+
+        }
+        constructor(private device: bleio.BleDevice, private view:JQuery) {
+            this.title = $('<h1>').text(device.address).appendTo(view);
+            this.status = $('<h3>').text('found').appendTo(view);
+            this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK,(evt) => this.onConnectClick(evt)).appendTo(view);          
             this.library = new LibraryGages();            
-            this.save = $('#save');
-            this.device.discover(this.library.CONST,()=>this.onDiscovered());
+           // this.save = $('#save');
+            
         }
-        private onDiscovered(): void {
-            this.onConnected && this.onConnected(this.device.name);
-        }
-        private activateService(id: number): void {
-            if (isNaN(id)) return
-            var serv: ti.BleService = this.services[id];
-
-        }
-        private deactivateService(id: number): void {
-            if (isNaN(id)) return
+        private onReconnected(res): void {
+            console.log('reconnected ',res);           
         }
 
+        private onConnectClick(evt: JQueryEventObject): void {
+            var el = $(evt.currentTarget);
+            if (!this.device) return;
+            switch (el.data('state')) {
+                case 'connect':
+                    if (this.device.getAllServices()) this.reconnect();
+                    else this.device.discover(this.library.CONST,() => this.populateServices());
+                    this.status.text('connecting...');
+                    this.btnConnect.data('state', 'disconnect');
+                    this.btnConnect.text('Disconnect');
+                    break;
+                case 'disconnect':
+                    this.status.text('Disconnected');
+                    this.btnConnect.data('state', 'connect');
+                    this.btnConnect.text('Re-connect');
+                    if (this.device) this.device.disconnect();
+                    break;
+            }
+        }
+     
        
         private toggleActive(evt): void{
             var el: JQuery = $(evt.target);
@@ -130,49 +140,34 @@ module ti {
 
         private views: any = {};
         reconnect() {
-            
+            this.device.reconnect((res) => this.onReconnected(res));
         }
+        
         disconnect() {
             this.device.disconnect(); 
 
         }
       
 
-        populateServices(view: JQuery): void { 
+        populateServices(): void {
+            this.status.text('Connected');
+            var view = this.view 
             this.title.text(this.device.name);
             view.addClass('services');
-            var servs: ti.BleService[] = this.device.getAllServices();
+            var servs: bleio.BleService[] = this.device.getAllServices();
+           // console.log(servs);
             this.services = servs;           
-            var out = '<ul>';
+            var out = '';
             for (var i = 0, n = servs.length; i < n; i++) out += this.renderSevice(i, servs[i]);
-            view.html(out + '</ul>');
+            view.append($('<ul>').html(out));
             view.on(CLICK, 'a.header',(evt) => this.toggleActive(evt));
-            this.view = view;
-
 
         }
-        renderSevice(id: number, ser: ti.BleService): string {
-            return '<li class="service"><a class="header" href="#" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
+        renderSevice(id: number, ser: bleio.BleService): string {
+            return '<li class="service"><a class="header" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
         }
 
-        private onBarometer(res): void {
-            console.log('onBarometer ' + res);
-        }
-
-       
-
-       
-
-
-
-    
-
-        private onSaveClick(evt: JQueryEventObject): void {
-
-        }
-        private onLinkClick(evt: JQueryEventObject): void {
-
-        }
+     
 
     }
 

@@ -1,6 +1,6 @@
 ﻿/// <reference path="typings/jquery.d.ts" />
 
-module ti {
+module bleio {
     interface BLEStatus {
         status: string;
     }
@@ -11,7 +11,7 @@ module ti {
     export class LibraryGages {
         CONST: any = Reg.DEV;       
 
-        createView(service:evoble.BleService, view: JQuery): ServiceView  {           
+        createView(service:bleio.BleService, view: JQuery): ServiceView  {           
             switch (service.name) {
                 case Reg.IRTEMPERATURE:
                     return new TemperatureView(service,view);
@@ -44,27 +44,28 @@ module ti {
         }
     }
 
-    export interface ServiceV {
+    export interface Sensor {
         activate():void;
         deactivate():void;
         onOFF(res):void;
     }
 
-    export class ServiceView implements ServiceV  {
+    export class ServiceView implements Sensor  {
         header: JQuery;
         content: JQuery;
         view: JQuery;
-        data: number[];
+        data: any[];
         isBusy: boolean;       
-        constructor(public service: evoble.BleService, view: JQuery) {
+        constructor(public service: bleio.BleService, view: JQuery) {
             this.header = view;
             this.view = view.parent();
             this.content = $('<div>').appendTo(this.view);
         }
         toggle(): void {
+            
             if (this.isBusy) return;
-            if (this.header.hasClass('active')) this.activate();
-            else this.deactivate();
+            if (this.header.hasClass('active')) this.deactivate(); 
+            else this.activate();
         }
         turnON(): void {
 
@@ -78,6 +79,7 @@ module ti {
 
         }
         activate() {
+
             this.isBusy = true;
             this.header.addClass('active');
             this.turnON();
@@ -102,7 +104,8 @@ module ti {
         onData(data: any): void {
             var b: Int8Array = new Int8Array(data);
             var val = b[0];
-            
+           
+
             console.log(this.service.name + '   ' + val);
         }
 
@@ -130,10 +133,13 @@ module ti {
         onData(data: any): void {            
             var b: Int8Array = new Int8Array(data);
             var val = b[0];
-            console.log(this.service.name + '   ' +val);
+            this.data.push(val);
+            this.content.text(this.data.join(', '));
+            console.log(this.service.name + '   ' + val);
         }
        
         turnON() {
+            this.data=[];
             this.service.turnOn(function () { });
             this.service.setCallBack((res) => this.onData(res));   
         }
@@ -154,13 +160,14 @@ module ti {
             var S = S0 * (1 + a1 * (Tdie - Tref) + a2 * Math.pow((Tdie - Tref), 2));
             var Vos = b0 + b1 * (Tdie - Tref) + b2 * Math.pow((Tdie - Tref), 2);
             var fObj = (Vobj2 - Vos) + c2 * Math.pow((Vobj2 - Vos), 2);
-            var tObj: number = Math.pow(Math.pow(Tdie, 4) + (fObj / S), 0.25) - 273.15;
-            console.log(this.service.name + '   ' +tObj);
-            this.data.push(tObj);
+            var val: number = Math.pow(Math.pow(Tdie, 4) + (fObj / S), 0.25) - 273.15;
+           // console.log(this.service.name + '   ' +tObj);
+            this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         }
       
        turnON() {
+
            this.data = [];
             this.service.config(new Uint8Array([1]), function () { });
             this.service.turnOn(function () { });
@@ -178,17 +185,35 @@ module ti {
 
     class AccelerometerView extends ServiceView  {
        
+
         onData(res: any): void {
             var data: Int8Array = new Int8Array(res);
+            var val: number
             var x: number = data[0] / 16;
-            var y: number = data[1] / 16;
-            var z: number = data[2] / 16;
-            var g: number = Math.sqrt((x * x) + (y * y) + (z * z)); 
-            console.log(this.service.name + '   ' +g);       
+            var y: number;
+            var z: number;
+            switch (data.length) {
+                case 1:
+                    val = x;
+                    break;
+                case 2:
+                    y = data[1] / 16;
+                    val = Math.sqrt((x * x) + (y * y));
+                    break;
+                case 3:
+                    y = data[1] / 16;
+                    z = data[2] / 16;
+                    val = Math.sqrt((x * x) + (y * y) + (z * z)); 
+                    break;
+            }          
+            this.data.push(val.toPrecision(4));
+            this.content.text(this.data.join(', '));
+          //  console.log(this.service.name + '   ' +g);       
            
         }
 
         turnON() {
+            this.data = [];
             this.service.config(new Uint8Array([1]), function () { });
             this.service.writeProperty('PERIOD', new Uint8Array([20]), function () { });
             this.service.turnOn(function () { });
@@ -211,11 +236,13 @@ module ti {
             var d: Int16Array = new Int16Array(res);
             var hum: number = d[1] - (d[1] % 4);
             var val = (-6.0 + 125.0 * (hum / 65535.0));
-            console.log(this.service.name + '   ' +val);
+           // console.log(this.service.name + '   ' + val);
+            this.data.push(val.toPrecision(4));
+            this.content.text(this.data.join(', '));
         }
 
         turnON() {
-           
+            this.data = [];
             this.header.addClass('active');
             this.service.config(new Uint8Array([1]), function () { });
             this.service.turnOn(function () { });
@@ -250,8 +277,9 @@ module ti {
                 S = calibration[2] + calibration[3] * t_r / Math.pow(2, 17) + ((calibration[4] * t_r / Math.pow(2, 15)) * t_r) / Math.pow(2, 19),
                 O = calibration[5] * Math.pow(2, 14) + calibration[6] * t_r / Math.pow(2, 3) + ((calibration[7] * t_r / Math.pow(2, 15)) * t_r) / Math.pow(2, 4);
             var val: number = (S * p_r + O) / Math.pow(2, 14);
-
-            console.log(this.service.name+'   '+ val);
+            this.data.push(val.toPrecision(4));
+            this.content.text(this.data.join(', '));
+           // console.log(this.service.name+'   '+ val);
         
         }
 
@@ -266,7 +294,8 @@ module ti {
         }
 
 
-        turnON():void{
+        turnON(): void{
+            this.data = [];
             if (this.isCalibrated) {
                 this.service.config(new Uint8Array([1]), function () { });
                 this.service.turnOn(function () { });
@@ -293,11 +322,14 @@ module ti {
            
             var m = new Int16Array(res);
             var k: number = (2000.0 / 65336.0);           
-            var x = (m[0]) * k, y = k * (m[1]), z = k * (m[2]);   
-            console.log(x);         
+            var val = (m[0]) * k, y = k * (m[1]), z = k * (m[2]);   
+          //  console.log(x);    
+            this.data.push(val.toPrecision(4));
+            this.content.text(this.data.join(', '));     
         }
 
         turnON() {
+            this.data = [];
             this.service.config(new Uint8Array([1]), function () { });
             this.service.writeProperty('PERIOD', new Uint8Array([20]), function () { });
            this.service.turnOn(function () { });
@@ -321,12 +353,15 @@ module ti {
             // Calculate rotation, unit deg/s, range -250, +250
             var k:number = (500.0 / 65536.0);               
             k = Math.round(k * 100) / 100;
-            var y = k * (d[0]), x = k * (d[1]), z = k * (d[2]);
-            console.log(y);
+            var val:number = k * (d[0]), x = k * (d[1]), z = k * (d[2]);
+           // console.log(y);
+            this.data.push(val.toPrecision(4));
+            this.content.text(this.data.join(', '));
         }
 
 
         turnON() {
+            this.data = [];
             var cfg = Reg.DEV.GAxis.XYZ;// 7
            // console.log(cfg);
           

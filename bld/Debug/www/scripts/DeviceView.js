@@ -1,27 +1,41 @@
 /// <reference path="typings/jquery.d.ts" />
 /// <reference path="tisensortag.ts" />
-/// <reference path="easyble.ts" />
-var ti;
-(function (ti) {
+/// <reference path="bleio.ts" />
+var bleio;
+(function (bleio) {
     var ScannerView = (function () {
         function ScannerView() {
             var _this = this;
             this.status = $('#status');
             this.btnScanner = $('#scan').data('state', 'scan').on(CLICK, function (evt) { return _this.onScanClick(evt); });
-            this.scanner = new ti.BleScanner();
+            this.scanner = new bleio.BleScanner();
+            this.clear();
         }
-        ScannerView.prototype.onFoundDevice = function (device) {
-            this.myDevice = device;
-            this.status.text('Found ' + device.name);
-            this.btnScanner.data('state', 'connect');
-            this.btnScanner.text('Connect');
-            this.scanner.stopScan();
+        ScannerView.prototype.clear = function () {
+            this.knownDevices = {};
         };
-        ScannerView.prototype.onConnected = function (name) {
-            this.status.text('Connected');
-            this.btnScanner.data('state', 'connected');
-            this.btnScanner.text('Disconnect');
-            this.deviceView.populateServices($('<div>').appendTo($('#deviceView')));
+        ScannerView.prototype.onFoundDevice = function (device) {
+            var existingDevice = this.knownDevices[device.address];
+            if (existingDevice) {
+                existingDevice.rssi = device.rssi;
+            }
+            else {
+                console.log(device);
+                var dev = new bleio.BleDevice(device.address, device.rssi, device.name);
+                this.knownDevices[device.address] = dev;
+                this.status.text('Found ' + device.name);
+                this.device = dev;
+                this.deviceView = null;
+                this.stopScan();
+                this.onFound(dev);
+            }
+        };
+        ScannerView.prototype.stopScan = function () {
+            this.status.text('Scan');
+            this.btnScanner.data('state', 'scan');
+            this.btnScanner.text('Scan');
+            this.scanner.stopScan(function () {
+            });
         };
         ScannerView.prototype.onDeviceFound = function (device) {
             if ((device != null) && (device.name != null))
@@ -35,68 +49,62 @@ var ti;
                     el.data('state', 'scanning');
                     this.status.text('Scanning...');
                     this.btnScanner.text('Stop Scan');
-                    this.scanner.stopScan();
-                    this.scanner.reportDeviceOnce(true);
-                    this.scanner.scanTime(2000);
                     this.scanner.startScan(function (device) { return _this.onDeviceFound(device); });
                     break;
                 case 'scanning':
-                    this.status.text('Stoped Scan');
-                    this.btnScanner.data('state', 'scan');
-                    this.btnScanner.text('Scan');
-                    this.scanner.stopScan();
-                    break;
-                case 'connect':
-                    this.status.text('Connecting');
-                    this.btnScanner.data('state', 'connecting');
-                    this.btnScanner.text('Disconnect');
-                    if (!this.deviceView)
-                        this.deviceView = new DeviceView(this.myDevice, function (name) { return _this.onConnected(name); });
-                    else
-                        this.deviceView.reconnect();
-                    break;
-                case 'disconnect':
-                    this.status.text('Disconnected');
-                    this.btnScanner.data('state', 'connect');
-                    this.btnScanner.text('Re-connect');
-                    if (this.deviceView)
-                        this.deviceView.disconnect();
-                    break;
-                case 'connected':
-                    this.status.text('Disconnecting');
-                    this.btnScanner.data('state', 'connect');
-                    this.btnScanner.text('Re-connect');
-                    if (this.deviceView)
-                        this.deviceView.disconnect();
+                    this.stopScan();
                     break;
             }
         };
         return ScannerView;
     })();
-    ti.ScannerView = ScannerView;
+    bleio.ScannerView = ScannerView;
     var DeviceView = (function () {
-        function DeviceView(device, onConnected) {
+        function DeviceView(device, view) {
             var _this = this;
             this.device = device;
-            this.onConnected = onConnected;
+            this.view = view;
             this.views = {};
-            this.title = $('#title');
-            this.library = new ti.LibraryGages();
-            this.save = $('#save');
-            this.device.discover(this.library.CONST, function () { return _this.onDiscovered(); });
+            this.title = $('<h2>').text(device.address).appendTo(view);
+            this.status = $('<h3>').text('found').appendTo(view);
+            this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK, function (evt) { return _this.onConnectClick(evt); }).appendTo(view);
+            this.library = new bleio.LibraryGages();
+            // this.save = $('#save');
         }
-        DeviceView.prototype.onDiscovered = function () {
-            this.onConnected && this.onConnected(this.device.name);
+        DeviceView.prototype.getDevice = function () {
+            return this.device;
         };
-        DeviceView.prototype.activateService = function (id) {
-            if (isNaN(id))
+        DeviceView.prototype.onConnectClick = function (evt) {
+            var _this = this;
+            var el = $(evt.currentTarget);
+            if (!this.device)
                 return;
-            var serv = this.services[id];
+            switch (el.data('state')) {
+                case 'connect':
+                    if (this.device.getAllServices())
+                        this.device.reconnect();
+                    else
+                        this.device.discover(this.library.CONST, function () { return _this.populateServices(); });
+                    this.status.text('connecting...');
+                    this.btnConnect.data('state', 'disconnect');
+                    this.btnConnect.text('Disconnect');
+                    break;
+                case 'disconnect':
+                    this.status.text('Disconnected');
+                    this.btnConnect.data('state', 'connect');
+                    this.btnConnect.text('Re-connect');
+                    if (this.device)
+                        this.device.disconnect();
+                    break;
+            }
         };
-        DeviceView.prototype.deactivateService = function (id) {
-            if (isNaN(id))
-                return;
-        };
+        // private activateService(id: number): void {
+        // if (isNaN(id)) return
+        //var serv: bleio.BleService = this.services[id];
+        // }
+        // private deactivateService(id: number): void {
+        //  if (isNaN(id)) return
+        // }
         DeviceView.prototype.toggleActive = function (evt) {
             var el = $(evt.target);
             if (el.data('type') !== 'service')
@@ -112,31 +120,33 @@ var ti;
         DeviceView.prototype.disconnect = function () {
             this.device.disconnect();
         };
-        DeviceView.prototype.populateServices = function (view) {
+        DeviceView.prototype.populateServices = function () {
             var _this = this;
+            this.status.text('Connected');
+            var view = this.view;
             this.title.text(this.device.name);
             view.addClass('services');
             var servs = this.device.getAllServices();
+            console.log(servs);
             this.services = servs;
-            var out = '<ul>';
+            var out = '';
             for (var i = 0, n = servs.length; i < n; i++)
                 out += this.renderSevice(i, servs[i]);
-            view.html(out + '</ul>');
+            view.append($('<ul>').html(out));
             view.on(CLICK, 'a.header', function (evt) { return _this.toggleActive(evt); });
-            this.view = view;
         };
         DeviceView.prototype.renderSevice = function (id, ser) {
-            return '<li class="service"><a class="header" href="#" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
+            return '<li class="service"><a class="header" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
         };
-        DeviceView.prototype.onBarometer = function (res) {
-            console.log('onBarometer ' + res);
-        };
+        // private onBarometer(res): void {
+        // console.log('onBarometer ' + res);
+        // }
         DeviceView.prototype.onSaveClick = function (evt) {
         };
         DeviceView.prototype.onLinkClick = function (evt) {
         };
         return DeviceView;
     })();
-    ti.DeviceView = DeviceView;
-})(ti || (ti = {}));
+    bleio.DeviceView = DeviceView;
+})(bleio || (bleio = {}));
 //# sourceMappingURL=DeviceView.js.map

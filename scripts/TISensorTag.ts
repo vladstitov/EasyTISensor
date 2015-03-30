@@ -1,6 +1,6 @@
 ﻿/// <reference path="typings/jquery.d.ts" />
 
-module ti {
+module bleio {
     interface BLEStatus {
         status: string;
     }
@@ -11,7 +11,7 @@ module ti {
     export class LibraryGages {
         CONST: any = Reg.DEV;       
 
-        createView(service:ti.BleService, view: JQuery): ServiceView  {           
+        createView(service:bleio.BleService, view: JQuery): ServiceView  {           
             switch (service.name) {
                 case Reg.IRTEMPERATURE:
                     return new TemperatureView(service,view);
@@ -44,19 +44,19 @@ module ti {
         }
     }
 
-    export interface ServiceV {
+    export interface Sensor {
         activate():void;
         deactivate():void;
         onOFF(res):void;
     }
 
-    export class ServiceView implements ServiceV  {
+    export class ServiceView implements Sensor  {
         header: JQuery;
         content: JQuery;
         view: JQuery;
         data: any[];
         isBusy: boolean;       
-        constructor(public service: ti.BleService, view: JQuery) {
+        constructor(public service: bleio.BleService, view: JQuery) {
             this.header = view;
             this.view = view.parent();
             this.content = $('<div>').appendTo(this.view);

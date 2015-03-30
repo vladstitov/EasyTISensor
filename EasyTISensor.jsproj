@@ -121,8 +121,6 @@
     <Content Include="plugins\com.evothings.ble\src\ios\EVOBLE.m" />
     <Content Include="plugins\com.evothings.ble\tests\README.md" />
     <Content Include="plugins\com.evothings.ble\tests\test.html" />
-    <Content Include="scripts\easy-ble.js" />
-    <Content Include="scripts\ti-sensortag.js" />
     <Content Include="scripts\TISensorTag.js" />
     <Folder Include="images\" />
     <Content Include="merges\android\scripts\android2.3-jscompat.js" />
@@ -146,7 +144,7 @@
     </Content>
     <Content Include="index.html" />
     <TypeScriptCompile Include="scripts\DeviceView.ts" />
-    <TypeScriptCompile Include="scripts\EasyBle.ts" />
+    <TypeScriptCompile Include="scripts\Bleio.ts" />
     <TypeScriptCompile Include="scripts\index.ts" />
     <TypeScriptCompile Include="scripts\platformOverrides.ts" />
     <Content Include="css\index.css" />
@@ -199,7 +197,6 @@
     <Content Include="res\screens\windows\SplashScreen.scale-240.png" />
     <Content Include="res\screens\wp8\screen-portrait.jpg" />
     <TypeScriptCompile Include="scripts\TISensorTag.ts" />
-    <TypeScriptCompile Include="scripts\TISesorEvoProxy.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\cordova.d.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\BatteryStatus.d.ts" />
     <TypeScriptCompile Include="scripts\typings\cordova\plugins\Camera.d.ts" />

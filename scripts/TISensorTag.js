@@ -5,8 +5,8 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var ti;
-(function (ti) {
+var bleio;
+(function (bleio) {
     var LibraryGages = (function () {
         function LibraryGages() {
             this.CONST = Reg.DEV;
@@ -41,7 +41,7 @@ var ti;
         };
         return LibraryGages;
     })();
-    ti.LibraryGages = LibraryGages;
+    bleio.LibraryGages = LibraryGages;
     var ServiceView = (function () {
         function ServiceView(service, view) {
             this.service = service;
@@ -84,7 +84,7 @@ var ti;
         };
         return ServiceView;
     })();
-    ti.ServiceView = ServiceView;
+    bleio.ServiceView = ServiceView;
     var Unknown = (function (_super) {
         __extends(Unknown, _super);
         function Unknown() {
@@ -442,6 +442,6 @@ var ti;
         };
         return Reg;
     })();
-    ti.Reg = Reg;
-})(ti || (ti = {}));
+    bleio.Reg = Reg;
+})(bleio || (bleio = {}));
 //# sourceMappingURL=tisensortag.js.map

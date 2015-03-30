@@ -1,5 +1,5 @@
 ﻿/// <reference path="typings/evothingsble.d.ts" />
-module ti {
+module bleio {
    // import ble = evothings.ble;
     //evothings.ble
 
@@ -59,8 +59,9 @@ module ti {
 
     }
 
-    var DATA: string = 'DATA';
-    var NOTIFICATION:string='NOTIFICATION';
+   // var DATA: string = 'DATA';
+   // var NOTIFICATION:string='NOTIFICATION';
+    ////////////////////////////////////////////////////////////BLE Service Classs////////////////////////////////////////////////////////////////
 
     export class BleService {
         handle: number;
@@ -148,17 +149,17 @@ module ti {
 
         //}
 
-        getDN(): BleDescriptor {
-            return this.getCharacteristicsByName(DATA).getDescriptorByNmae(NOTIFICATION);
+        getCharacteristicDataNotification(): BleDescriptor {
+            return this.getCharacteristicsByName('DATA').getDescriptorByNmae('NOTIFICATION');
         }
-        getCD(): BleCharacteristic {
-            return this.getCharacteristicsByName(DATA);
+        getCharacteristicData(): BleCharacteristic {
+            return this.getCharacteristicsByName('DATA');
         }
         getDescriptorOf(charname: string, descrName: string): BleDescriptor {
             return this.getCharacteristicsByName(charname).getDescriptorByNmae(descrName);
         }
         turnOn(success:Function) {
-            evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, new Uint8Array([1, 0]), success ,(err) => this.logError(err));
+            evothings.ble.writeDescriptor(this.deviceHandle, this.getCharacteristicDataNotification().handle, new Uint8Array([1, 0]), success ,(err) => this.logError(err));
         }
         writeProperty(name:string, value:any, success:Function): void {
             evothings.ble.writeCharacteristic(this.deviceHandle, this.getCharacteristicsByName(name).handle, value,success,(err) => this.logError(err));
@@ -170,7 +171,7 @@ module ti {
             evothings.ble.writeCharacteristic(this.deviceHandle, this.getCharacteristicsByName('CONFIG').handle, value, callBack,(err) => this.logError(err));
         }
         setCallBack(success: Function): void {
-            evothings.ble.enableNotification(this.deviceHandle, this.getCD().handle, success,(err) => this.logError(err));
+            evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicData().handle, success,(err) => this.logError(err));
         }
        // writeDataNotigication(value: any): void {            
          //   evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, value,(res) => this.onWriteD(res),(err) => this.logError(err));
@@ -186,7 +187,7 @@ module ti {
             evothings.ble.enableNotification(this.deviceHandle, characteristic.handle, win,(err) => this.logError(err));
         }
         turnOFF(callBack:Function) {
-            evothings.ble.disableNotification(this.deviceHandle,this.getCD().handle, callBack,(err) => this.logError(err));        
+            evothings.ble.disableNotification(this.deviceHandle,this.getCharacteristicData().handle, callBack,(err) => this.logError(err));        
 
         }
         disableNotification(characteristic: BleCharacteristic, win) {
@@ -199,26 +200,29 @@ module ti {
         }     
                 
     }
-    
+    //////////////////////////////////////////////////////BLE Device Class///////////////////////////////////////////////////
 
     export class BleDevice {
        deviceHandle: number;
        CONSTS: any;        
         onError: Function;
 
-        private services: BleService[] = [];
-        private servicesObj: any = {};
+        private services: BleService[];
+        private servicesObj: any ;
         private onDiscovered: Function       
 
-        constructor(private scanner:BleScanner,public address: string, public rssi: number,public name: string) {
+        constructor(public address: string, public rssi: number,public name: string) {
 
         }
      
        
         private onConnected(connectInfo: { state: number; deviceHandle: number }): void {
-            if (connectInfo.state == 2) {// connected			
-                this.deviceHandle = connectInfo.deviceHandle;              
-                evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err));  
+            if (connectInfo.state == 2) {// connected	
+              
+                    this.deviceHandle = connectInfo.deviceHandle;
+                    evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err)); 
+                
+                
             }
             else if (connectInfo.state == 0) {// disconnected     
                
@@ -300,18 +304,22 @@ module ti {
             this.onDiscovered = callBack;
             this.connect();                         
         } 
+
+        reconnect(callBack): void {
+            evothings.ble.connect(this.address, callBack,(err) => this.logError(err));  
+        }
         
       
     }
 
-
+    ///////////////////////////////////////////////// BLE Scanner Class///////////////////////////////////////////////////////////////
     
     export class BleScanner {
         knownDevices: {} = {};
         connectedDevices: {} = {}
         reportOnce: boolean = false;
         name: string = 'EasyBle';
-        scantime: number;
+      //  scantime: number;
         onError: Function;
 
         logError(err): void {
@@ -324,39 +332,15 @@ module ti {
         private onFail(result): void {
             this.onError && this.onError(result);
             console.log(this.name, result);
-        }
+        }      
+       
+        stopScan(success:Function): void {
+            evothings.ble.stopScan(success,(result)=>this.onFail(result));
+        }      
 
-        private onStopScanSuccess(result): void {
-            console.log('onStopScanSuccess ',result);
-
-        }
-        scanTime(num: number): void {
-            this.scantime = num;
-        }
-        reportDeviceOnce(reportOnce: boolean): void {
-            this.reportOnce = reportOnce;
-        }
-        stopScan(): void {
-            evothings.ble.stopScan((result)=>this.onStopScanSuccess(result),(result)=>this.onFail(result));
-        }
-        private onScanComplete(device: { address: string; rssi: number;name:string}, win: Function): void {
-            var existingDevice: BleDevice = this.knownDevices[device.address]
-            if (existingDevice) {
-                if (this.reportOnce) { return; }
-                existingDevice.rssi = device.rssi;
-                existingDevice.name = device.name;
-                win(existingDevice);
-            } else {
-                var dev: BleDevice  = new BleDevice(this, device.address, device.rssi, device.name);   
-                this.knownDevices[device.address] = dev;                            
-                win(dev);
-            }
-        }
-
-        startScan(win: Function) {
-            this.stopScan();
-            this.knownDevices = {};
-            evothings.ble.startScan((device) => this.onScanComplete(device, win),(err)=>this.logError(err));
+        startScan(win: Function) { 
+            this.stopScan(()=> {});         
+            evothings.ble.startScan(win,(err)=>this.logError(err));
         }             
 
     }

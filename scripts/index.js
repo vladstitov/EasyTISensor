@@ -1,31 +1,33 @@
+/// <reference path="bleio.ts" />
 // For an introduction to the Blank template, see the following documentation:
 // http://go.microsoft.com/fwlink/?LinkID=397705
 // To debug code on page load in Ripple or on Android devices/emulators: launch your app, set breakpoints, 
 // and then run "window.location.reload()" in the JavaScript Console.
-var EasyTISensor;
-(function (EasyTISensor) {
+var CLICK = 'click';
+var CHANGE = 'change';
+var bleio;
+(function (bleio) {
     "use strict";
-    var Application;
-    (function (Application) {
-        function initialize() {
-            document.addEventListener('deviceready', onDeviceReady, false);
+    var BleTI = (function () {
+        function BleTI() {
+            var _this = this;
+            this.deviceViews = [];
+            var scan = new bleio.ScannerView();
+            scan.onFound = function (device) { return _this.onDeviceFound(device); };
+            document.addEventListener('pause', function () { return _this.onPause(); }, false);
+            document.addEventListener('resume', function () { return _this.onResume(); }, false);
         }
-        Application.initialize = initialize;
-        function onDeviceReady() {
-            // Handle the Cordova pause and resume events
-            document.addEventListener('pause', onPause, false);
-            document.addEventListener('resume', onResume, false);
-            // TODO: Cordova has been loaded. Perform any initialization that requires Cordova here.
-        }
-        function onPause() {
+        BleTI.prototype.onDeviceFound = function (device) {
+            this.deviceViews.push(new bleio.DeviceView(device, $('<div>').appendTo($('#deviceView'))));
+        };
+        BleTI.prototype.onPause = function () {
             // TODO: This application has been suspended. Save application state here.
-        }
-        function onResume() {
+        };
+        BleTI.prototype.onResume = function () {
             // TODO: This application has been reactivated. Restore application state here.
-        }
-    })(Application = EasyTISensor.Application || (EasyTISensor.Application = {}));
-    window.onload = function () {
-        Application.initialize();
-    };
-})(EasyTISensor || (EasyTISensor = {}));
+        };
+        return BleTI;
+    })();
+    bleio.BleTI = BleTI;
+})(bleio || (bleio = {}));
 //# sourceMappingURL=index.js.map

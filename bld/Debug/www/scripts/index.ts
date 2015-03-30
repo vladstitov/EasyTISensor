@@ -1,34 +1,36 @@
-﻿// For an introduction to the Blank template, see the following documentation:
+﻿/// <reference path="bleio.ts" />
+// For an introduction to the Blank template, see the following documentation:
 // http://go.microsoft.com/fwlink/?LinkID=397705
 // To debug code on page load in Ripple or on Android devices/emulators: launch your app, set breakpoints, 
 // and then run "window.location.reload()" in the JavaScript Console.
-module EasyTISensor {
+var CLICK = 'click';
+var CHANGE = 'change';	
+module bleio {
     "use strict";
 
-    export module Application {
-        export function initialize() {
-            document.addEventListener('deviceready', onDeviceReady, false);
+    export class BleTI {
+        private scannerView:bleio.ScannerView
+        private deviceViews:bleio.DeviceView[]=[];
+        constructor() {
+            var scan: bleio.ScannerView = new bleio.ScannerView();
+            scan.onFound = (device: bleio.BleDevice) => this.onDeviceFound(device); 
+
+           document.addEventListener('pause',() => this.onPause(), false);
+           document.addEventListener('resume',() => this.onResume(), false);
+        }  
+
+        private onDeviceFound(device: bleio.BleDevice): void {
+            this.deviceViews.push(new bleio.DeviceView(device,$('<div>').appendTo($('#deviceView'))));
         }
+       
 
-        function onDeviceReady() {
-            // Handle the Cordova pause and resume events
-            document.addEventListener('pause', onPause, false);
-            document.addEventListener('resume', onResume, false);
-
-            // TODO: Cordova has been loaded. Perform any initialization that requires Cordova here.
-        }
-
-        function onPause() {
+       onPause() {
             // TODO: This application has been suspended. Save application state here.
         }
 
-        function onResume() {
+       onResume() {
             // TODO: This application has been reactivated. Restore application state here.
         }
 
-    }
-
-    window.onload = function () {
-        Application.initialize();
-    }
+    }   
 }

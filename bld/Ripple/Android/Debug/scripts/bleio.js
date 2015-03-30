@@ -1,6 +1,6 @@
 /// <reference path="typings/evothingsble.d.ts" />
-var ti;
-(function (ti) {
+var bleio;
+(function (bleio) {
     // import ble = evothings.ble;
     //evothings.ble
     var BleDescriptor = (function () {
@@ -10,7 +10,7 @@ var ti;
         }
         return BleDescriptor;
     })();
-    ti.BleDescriptor = BleDescriptor;
+    bleio.BleDescriptor = BleDescriptor;
     var BleCharacteristic = (function () {
         function BleCharacteristic(device, obj) {
             this.device = device;
@@ -46,9 +46,10 @@ var ti;
         };
         return BleCharacteristic;
     })();
-    ti.BleCharacteristic = BleCharacteristic;
-    var DATA = 'DATA';
-    var NOTIFICATION = 'NOTIFICATION';
+    bleio.BleCharacteristic = BleCharacteristic;
+    // var DATA: string = 'DATA';
+    // var NOTIFICATION:string='NOTIFICATION';
+    ////////////////////////////////////////////////////////////BLE Service Classs////////////////////////////////////////////////////////////////
     var BleService = (function () {
         function BleService(device, obj) {
             this.device = device;
@@ -109,18 +110,18 @@ var ti;
         };
         //onWriteD(res): void {
         //}
-        BleService.prototype.getDN = function () {
-            return this.getCharacteristicsByName(DATA).getDescriptorByNmae(NOTIFICATION);
+        BleService.prototype.getCharacteristicDataNotification = function () {
+            return this.getCharacteristicsByName('DATA').getDescriptorByNmae('NOTIFICATION');
         };
-        BleService.prototype.getCD = function () {
-            return this.getCharacteristicsByName(DATA);
+        BleService.prototype.getCharacteristicData = function () {
+            return this.getCharacteristicsByName('DATA');
         };
         BleService.prototype.getDescriptorOf = function (charname, descrName) {
             return this.getCharacteristicsByName(charname).getDescriptorByNmae(descrName);
         };
         BleService.prototype.turnOn = function (success) {
             var _this = this;
-            evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, new Uint8Array([1, 0]), success, function (err) { return _this.logError(err); });
+            evothings.ble.writeDescriptor(this.deviceHandle, this.getCharacteristicDataNotification().handle, new Uint8Array([1, 0]), success, function (err) { return _this.logError(err); });
         };
         BleService.prototype.writeProperty = function (name, value, success) {
             var _this = this;
@@ -136,7 +137,7 @@ var ti;
         };
         BleService.prototype.setCallBack = function (success) {
             var _this = this;
-            evothings.ble.enableNotification(this.deviceHandle, this.getCD().handle, success, function (err) { return _this.logError(err); });
+            evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicData().handle, success, function (err) { return _this.logError(err); });
         };
         // writeDataNotigication(value: any): void {            
         //   evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, value,(res) => this.onWriteD(res),(err) => this.logError(err));
@@ -154,7 +155,7 @@ var ti;
         };
         BleService.prototype.turnOFF = function (callBack) {
             var _this = this;
-            evothings.ble.disableNotification(this.deviceHandle, this.getCD().handle, callBack, function (err) { return _this.logError(err); });
+            evothings.ble.disableNotification(this.deviceHandle, this.getCharacteristicData().handle, callBack, function (err) { return _this.logError(err); });
         };
         BleService.prototype.disableNotification = function (characteristic, win) {
             var _this = this;
@@ -168,10 +169,10 @@ var ti;
         };
         return BleService;
     })();
-    ti.BleService = BleService;
+    bleio.BleService = BleService;
+    //////////////////////////////////////////////////////BLE Device Class///////////////////////////////////////////////////
     var BleDevice = (function () {
-        function BleDevice(scanner, address, rssi, name) {
-            this.scanner = scanner;
+        function BleDevice(address, rssi, name) {
             this.address = address;
             this.rssi = rssi;
             this.name = name;
@@ -249,9 +250,12 @@ var ti;
             this.onDiscovered = callBack;
             this.connect();
         };
+        BleDevice.prototype.reconnect = function () {
+        };
         return BleDevice;
     })();
-    ti.BleDevice = BleDevice;
+    bleio.BleDevice = BleDevice;
+    ///////////////////////////////////////////////// BLE Scanner Class///////////////////////////////////////////////////////////////
     var BleScanner = (function () {
         function BleScanner() {
             this.knownDevices = {};
@@ -272,9 +276,6 @@ var ti;
         BleScanner.prototype.onStopScanSuccess = function (result) {
             console.log('onStopScanSuccess ', result);
         };
-        BleScanner.prototype.scanTime = function (num) {
-            this.scantime = num;
-        };
         BleScanner.prototype.reportDeviceOnce = function (reportOnce) {
             this.reportOnce = reportOnce;
         };
@@ -283,20 +284,6 @@ var ti;
             evothings.ble.stopScan(function (result) { return _this.onStopScanSuccess(result); }, function (result) { return _this.onFail(result); });
         };
         BleScanner.prototype.onScanComplete = function (device, win) {
-            var existingDevice = this.knownDevices[device.address];
-            if (existingDevice) {
-                if (this.reportOnce) {
-                    return;
-                }
-                existingDevice.rssi = device.rssi;
-                existingDevice.name = device.name;
-                win(existingDevice);
-            }
-            else {
-                var dev = new BleDevice(this, device.address, device.rssi, device.name);
-                this.knownDevices[device.address] = dev;
-                win(dev);
-            }
         };
         BleScanner.prototype.startScan = function (win) {
             var _this = this;
@@ -306,6 +293,6 @@ var ti;
         };
         return BleScanner;
     })();
-    ti.BleScanner = BleScanner;
-})(ti || (ti = {}));
-//# sourceMappingURL=easyble.js.map
+    bleio.BleScanner = BleScanner;
+})(bleio || (bleio = {}));
+//# sourceMappingURL=bleio.js.map
