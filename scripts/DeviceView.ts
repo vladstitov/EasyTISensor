@@ -94,7 +94,7 @@ module bleio {
 
         }
         constructor(private device: bleio.BleDevice, private view:JQuery) {
-            this.title = $('<h1>').text(device.address).appendTo(view);
+            this.title = $('<h1>').text(device.name).appendTo(view);
             this.status = $('<h3>').text('found').appendTo(view);
             this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK,(evt) => this.onConnectClick(evt)).appendTo(view);          
             this.library = new LibraryGages();            
