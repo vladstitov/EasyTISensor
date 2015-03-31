@@ -5,7 +5,7 @@
 // and then run "window.location.reload()" in the JavaScript Console.
 var CLICK = 'click';
 var CHANGE = 'change';	
-module app {
+module bleio {
     "use strict";
 
     export class BleTI {

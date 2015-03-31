@@ -20,16 +20,22 @@ var bleio;
                 existingDevice.rssi = device.rssi;
             }
             else {
-                if (device && device.name) {
-                    var dev = new bleio.BleDevice(device.address, device.rssi, device.name);
-                    this.knownDevices[device.address] = dev;
-                    this.status.text('Found ' + device.name);
-                    this.device = dev;
-                    this.deviceView = null;
-                    this.scanner.stopScan();
-                    this.onFound(dev);
-                }
+                // console.log(device);   
+                var dev = new bleio.BleDevice(device.address, device.rssi, device.name);
+                this.knownDevices[device.address] = dev;
+                this.status.text('Found ' + device.name);
+                this.device = dev;
+                this.deviceView = null;
+                this.stopScan();
+                this.onFound(dev);
             }
+        };
+        ScannerView.prototype.stopScan = function () {
+            this.status.text('Scan');
+            this.btnScanner.data('state', 'scan');
+            this.btnScanner.text('Scan');
+            this.scanner.stopScan(function () {
+            });
         };
         ScannerView.prototype.onDeviceFound = function (device) {
             if ((device != null) && (device.name != null))
@@ -43,14 +49,10 @@ var bleio;
                     el.data('state', 'scanning');
                     this.status.text('Scanning...');
                     this.btnScanner.text('Stop Scan');
-                    this.scanner.stopScan();
                     this.scanner.startScan(function (device) { return _this.onDeviceFound(device); });
                     break;
                 case 'scanning':
-                    this.status.text('Scan');
-                    this.btnScanner.data('state', 'scan');
-                    this.btnScanner.text('Scan');
-                    this.scanner.stopScan();
+                    this.stopScan();
                     break;
             }
         };
@@ -63,14 +65,17 @@ var bleio;
             this.device = device;
             this.view = view;
             this.views = {};
-            this.title = $('<h2>').text(device.address).appendTo(view);
+            this.title = $('<h1>').text(device.address).appendTo(view);
             this.status = $('<h3>').text('found').appendTo(view);
-            this.btnConnect = $('<a>').data('state', 'connect').on(CLICK, function (evt) { return _this.onConnectClick(evt); }).appendTo(view);
+            this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK, function (evt) { return _this.onConnectClick(evt); }).appendTo(view);
             this.library = new bleio.LibraryGages();
             // this.save = $('#save');
         }
         DeviceView.prototype.getDevice = function () {
             return this.device;
+        };
+        DeviceView.prototype.onReconnected = function (res) {
+            console.log('reconnected ', res);
         };
         DeviceView.prototype.onConnectClick = function (evt) {
             var _this = this;
@@ -79,8 +84,8 @@ var bleio;
                 return;
             switch (el.data('state')) {
                 case 'connect':
-                    if (this.device)
-                        this.device.reconnect();
+                    if (this.device.getAllServices())
+                        this.reconnect();
                     else
                         this.device.discover(this.library.CONST, function () { return _this.populateServices(); });
                     this.status.text('connecting...');
@@ -96,13 +101,6 @@ var bleio;
                     break;
             }
         };
-        // private activateService(id: number): void {
-        // if (isNaN(id)) return
-        //var serv: bleio.BleService = this.services[id];
-        // }
-        // private deactivateService(id: number): void {
-        //  if (isNaN(id)) return
-        // }
         DeviceView.prototype.toggleActive = function (evt) {
             var el = $(evt.target);
             if (el.data('type') !== 'service')
@@ -114,6 +112,8 @@ var bleio;
             this.views[name].toggle();
         };
         DeviceView.prototype.reconnect = function () {
+            var _this = this;
+            this.device.reconnect(function (res) { return _this.onReconnected(res); });
         };
         DeviceView.prototype.disconnect = function () {
             this.device.disconnect();
@@ -125,22 +125,16 @@ var bleio;
             this.title.text(this.device.name);
             view.addClass('services');
             var servs = this.device.getAllServices();
+            // console.log(servs);
             this.services = servs;
-            var out = '<ul>';
+            var out = '';
             for (var i = 0, n = servs.length; i < n; i++)
                 out += this.renderSevice(i, servs[i]);
-            view.html(out + '</ul>');
+            view.append($('<ul>').html(out));
             view.on(CLICK, 'a.header', function (evt) { return _this.toggleActive(evt); });
         };
         DeviceView.prototype.renderSevice = function (id, ser) {
-            return '<li class="service"><a class="header" href="#" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
-        };
-        // private onBarometer(res): void {
-        // console.log('onBarometer ' + res);
-        // }
-        DeviceView.prototype.onSaveClick = function (evt) {
-        };
-        DeviceView.prototype.onLinkClick = function (evt) {
+            return '<li class="service"><a class="header" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
         };
         return DeviceView;
     })();

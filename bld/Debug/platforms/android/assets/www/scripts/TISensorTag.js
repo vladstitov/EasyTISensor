@@ -99,13 +99,6 @@ var bleio;
         };
         Unknown.prototype.turnOFF = function () {
         };
-        // activate() {
-        // this.service.turnOn(function () { });
-        // this.service.setCallBack((res) => this.onData(res));
-        // }
-        // deactivate() {
-        // this.service.turnOFF((res) => this.onOFF(res));
-        //}
         Unknown.prototype.onOFF = function (res) {
         };
         return Unknown;
@@ -150,7 +143,6 @@ var bleio;
             var Vos = b0 + b1 * (Tdie - Tref) + b2 * Math.pow((Tdie - Tref), 2);
             var fObj = (Vobj2 - Vos) + c2 * Math.pow((Vobj2 - Vos), 2);
             var val = Math.pow(Math.pow(Tdie, 4) + (fObj / S), 0.25) - 273.15;
-            // console.log(this.service.name + '   ' +tObj);
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         };
@@ -198,7 +190,6 @@ var bleio;
             }
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
-            //  console.log(this.service.name + '   ' +g);       
         };
         AccelerometerView.prototype.turnON = function () {
             var _this = this;
@@ -228,7 +219,6 @@ var bleio;
             var d = new Int16Array(res);
             var hum = d[1] - (d[1] % 4);
             var val = (-6.0 + 125.0 * (hum / 65535.0));
-            // console.log(this.service.name + '   ' + val);
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         };
@@ -263,7 +253,6 @@ var bleio;
             var val = (S * p_r + O) / Math.pow(2, 14);
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
-            // console.log(this.service.name+'   '+ val);
         };
         BarometerView.prototype.onCalibrationW = function (res) {
             var _this = this;
@@ -305,7 +294,6 @@ var bleio;
             var m = new Int16Array(res);
             var k = (2000.0 / 65336.0);
             var val = (m[0]) * k, y = k * (m[1]), z = k * (m[2]);
-            //  console.log(x);    
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         };
@@ -335,22 +323,18 @@ var bleio;
         }
         GyroscopeView.prototype.onData = function (res) {
             var d = new Int8Array(res);
-            // Calculate rotation, unit deg/s, range -250, +250
             var k = (500.0 / 65536.0);
             k = Math.round(k * 100) / 100;
             var val = k * (d[0]), x = k * (d[1]), z = k * (d[2]);
-            // console.log(y);
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         };
         GyroscopeView.prototype.turnON = function () {
             var _this = this;
             this.data = [];
-            var cfg = Reg.DEV.GAxis.XYZ; // 7
-            // console.log(cfg);
+            var cfg = Reg.DEV.GAxis.XYZ; // 7          
             this.service.config(new Uint8Array([cfg]), function () {
             });
-            //  this.service.writeCharacteristic(this.service.getCharacteristicsByName('PERIOD'), new Uint8Array([20]),(res) => this.onWrite(res));
             this.service.turnOn(function () {
             });
             this.service.setCallBack(function (res) { return _this.onData(res); });

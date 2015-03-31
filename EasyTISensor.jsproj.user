@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ToolsVersionPromptShown>1.4</ToolsVersionPromptShown>
     <ReferenceCachePath>C:\Users\VladHome\AppData\Local\Temp\EasyTISensor_refcache</ReferenceCachePath>
-    <ShowAllFiles>true</ShowAllFiles>
+    <ShowAllFiles>false</ShowAllFiles>
     <AutoRefresh>true</AutoRefresh>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Android'">

@@ -121,7 +121,6 @@
     <Content Include="plugins\com.evothings.ble\src\ios\EVOBLE.m" />
     <Content Include="plugins\com.evothings.ble\tests\README.md" />
     <Content Include="plugins\com.evothings.ble\tests\test.html" />
-    <Content Include="scripts\TISensorTag.js" />
     <Folder Include="images\" />
     <Content Include="merges\android\scripts\android2.3-jscompat.js" />
     <Content Include="merges\android\scripts\platformOverrides.js" />

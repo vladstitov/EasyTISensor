@@ -207,8 +207,8 @@ module bleio {
        CONSTS: any;        
         onError: Function;
 
-        private services: BleService[] = [];
-        private servicesObj: any = {};
+        private services: BleService[];
+        private servicesObj: any ;
         private onDiscovered: Function       
 
         constructor(public address: string, public rssi: number,public name: string) {
@@ -217,9 +217,12 @@ module bleio {
      
        
         private onConnected(connectInfo: { state: number; deviceHandle: number }): void {
-            if (connectInfo.state == 2) {// connected			
-                this.deviceHandle = connectInfo.deviceHandle;              
-                evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err));  
+            if (connectInfo.state == 2) {// connected	
+              
+                    this.deviceHandle = connectInfo.deviceHandle;
+                    evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err)); 
+                
+                
             }
             else if (connectInfo.state == 0) {// disconnected     
                
@@ -302,8 +305,8 @@ module bleio {
             this.connect();                         
         } 
 
-        reconnect(): void {
-
+        reconnect(callBack): void {
+            evothings.ble.connect(this.address, callBack,(err) => this.logError(err));  
         }
         
       
@@ -329,28 +332,15 @@ module bleio {
         private onFail(result): void {
             this.onError && this.onError(result);
             console.log(this.name, result);
-        }
-
-        private onStopScanSuccess(result): void {
-            console.log('onStopScanSuccess ',result);
-
-        }
+        }      
        
-        reportDeviceOnce(reportOnce: boolean): void {
-            this.reportOnce = reportOnce;
-        }
-        stopScan(): void {
-            evothings.ble.stopScan((result)=>this.onStopScanSuccess(result),(result)=>this.onFail(result));
-        }
-        
-        private onScanComplete(device: { address: string; rssi: number;name:string}, win: Function): void {
-           
-        }
+        stopScan(success:Function): void {
+            evothings.ble.stopScan(success,(result)=>this.onFail(result));
+        }      
 
-        startScan(win: Function) {
-            this.stopScan();
-            this.knownDevices = {};
-            evothings.ble.startScan((device) => this.onScanComplete(device, win),(err)=>this.logError(err));
+        startScan(win: Function) { 
+            this.stopScan(()=> {});         
+            evothings.ble.startScan(win,(err)=>this.logError(err));
         }             
 
     }

@@ -1,21 +1,11 @@
 {
-  "changedFilesIos": [
-    "scripts\\Bleio.ts",
-    "index.html",
-    "scripts\\TISensorTag.js"
-  ],
+  "changedFilesIos": [],
   "deletedFilesIos": [
-    "scripts\\EasyBle.ts",
-    "scripts\\easy-ble.js",
-    "scripts\\ti-sensortag.js",
-    "scripts\\TISesorEvoProxy.ts"
+    "scripts\\TISensorTag.js"
   ],
   "addedPluginsIos": [],
   "deletedPluginsIos": [],
-  "changedFiles": [
-    "scripts\\TISensorTag.js",
-    "index.html"
-  ],
+  "changedFiles": [],
   "deletedFiles": [],
   "addedPlugins": [],
   "deletedPlugins": []

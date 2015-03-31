@@ -176,8 +176,6 @@ var bleio;
             this.address = address;
             this.rssi = rssi;
             this.name = name;
-            this.services = [];
-            this.servicesObj = {};
         }
         BleDevice.prototype.onConnected = function (connectInfo) {
             var _this = this;
@@ -250,7 +248,9 @@ var bleio;
             this.onDiscovered = callBack;
             this.connect();
         };
-        BleDevice.prototype.reconnect = function () {
+        BleDevice.prototype.reconnect = function (callBack) {
+            var _this = this;
+            evothings.ble.connect(this.address, callBack, function (err) { return _this.logError(err); });
         };
         return BleDevice;
     })();
@@ -273,23 +273,15 @@ var bleio;
             this.onError && this.onError(result);
             console.log(this.name, result);
         };
-        BleScanner.prototype.onStopScanSuccess = function (result) {
-            console.log('onStopScanSuccess ', result);
-        };
-        BleScanner.prototype.reportDeviceOnce = function (reportOnce) {
-            this.reportOnce = reportOnce;
-        };
-        BleScanner.prototype.stopScan = function () {
+        BleScanner.prototype.stopScan = function (success) {
             var _this = this;
-            evothings.ble.stopScan(function (result) { return _this.onStopScanSuccess(result); }, function (result) { return _this.onFail(result); });
-        };
-        BleScanner.prototype.onScanComplete = function (device, win) {
+            evothings.ble.stopScan(success, function (result) { return _this.onFail(result); });
         };
         BleScanner.prototype.startScan = function (win) {
             var _this = this;
-            this.stopScan();
-            this.knownDevices = {};
-            evothings.ble.startScan(function (device) { return _this.onScanComplete(device, win); }, function (err) { return _this.logError(err); });
+            this.stopScan(function () {
+            });
+            evothings.ble.startScan(win, function (err) { return _this.logError(err); });
         };
         return BleScanner;
     })();

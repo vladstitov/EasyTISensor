@@ -5,8 +5,8 @@
 // and then run "window.location.reload()" in the JavaScript Console.
 var CLICK = 'click';
 var CHANGE = 'change';
-var app;
-(function (app) {
+var bleio;
+(function (bleio) {
     "use strict";
     var BleTI = (function () {
         function BleTI() {
@@ -28,6 +28,6 @@ var app;
         };
         return BleTI;
     })();
-    app.BleTI = BleTI;
-})(app || (app = {}));
+    bleio.BleTI = BleTI;
+})(bleio || (bleio = {}));
 //# sourceMappingURL=index.js.map

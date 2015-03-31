@@ -62,7 +62,7 @@ module bleio {
             this.content = $('<div>').appendTo(this.view);
         }
         toggle(): void {
-            
+           
             if (this.isBusy) return;
             if (this.header.hasClass('active')) this.deactivate(); 
             else this.activate();
@@ -79,7 +79,7 @@ module bleio {
 
         }
         activate() {
-
+           
             this.isBusy = true;
             this.header.addClass('active');
             this.turnON();
@@ -116,13 +116,7 @@ module bleio {
         turnOFF(): void {
 
         }
-       // activate() {
-           // this.service.turnOn(function () { });
-           // this.service.setCallBack((res) => this.onData(res));
-       // }
-       // deactivate() {
-           // this.service.turnOFF((res) => this.onOFF(res));
-        //}
+    
         onOFF(res): void {
 
         }
@@ -161,7 +155,7 @@ module bleio {
             var Vos = b0 + b1 * (Tdie - Tref) + b2 * Math.pow((Tdie - Tref), 2);
             var fObj = (Vobj2 - Vos) + c2 * Math.pow((Vobj2 - Vos), 2);
             var val: number = Math.pow(Math.pow(Tdie, 4) + (fObj / S), 0.25) - 273.15;
-           // console.log(this.service.name + '   ' +tObj);
+          
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         }
@@ -208,7 +202,7 @@ module bleio {
             }          
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
-          //  console.log(this.service.name + '   ' +g);       
+            
            
         }
 
@@ -236,7 +230,7 @@ module bleio {
             var d: Int16Array = new Int16Array(res);
             var hum: number = d[1] - (d[1] % 4);
             var val = (-6.0 + 125.0 * (hum / 65535.0));
-           // console.log(this.service.name + '   ' + val);
+         
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         }
@@ -279,7 +273,7 @@ module bleio {
             var val: number = (S * p_r + O) / Math.pow(2, 14);
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
-           // console.log(this.service.name+'   '+ val);
+          
         
         }
 
@@ -323,7 +317,7 @@ module bleio {
             var m = new Int16Array(res);
             var k: number = (2000.0 / 65336.0);           
             var val = (m[0]) * k, y = k * (m[1]), z = k * (m[2]);   
-          //  console.log(x);    
+          
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));     
         }
@@ -349,12 +343,11 @@ module bleio {
     class GyroscopeView extends ServiceView {
         
         onData(res: any): void {
-            var d: Int8Array = new Int8Array(res);           
-            // Calculate rotation, unit deg/s, range -250, +250
+            var d: Int8Array = new Int8Array(res);      
+            
             var k:number = (500.0 / 65536.0);               
             k = Math.round(k * 100) / 100;
-            var val:number = k * (d[0]), x = k * (d[1]), z = k * (d[2]);
-           // console.log(y);
+            var val:number = k * (d[0]), x = k * (d[1]), z = k * (d[2]);          
             this.data.push(val.toPrecision(4));
             this.content.text(this.data.join(', '));
         }
@@ -362,12 +355,8 @@ module bleio {
 
         turnON() {
             this.data = [];
-            var cfg = Reg.DEV.GAxis.XYZ;// 7
-           // console.log(cfg);
-          
-            this.service.config(new Uint8Array([cfg]), function () { });
-
-          //  this.service.writeCharacteristic(this.service.getCharacteristicsByName('PERIOD'), new Uint8Array([20]),(res) => this.onWrite(res));
+            var cfg = Reg.DEV.GAxis.XYZ;// 7          
+            this.service.config(new Uint8Array([cfg]), function () { });        
             this.service.turnOn(function () { });
             this.service.setCallBack((res) => this.onData(res));   
         }        

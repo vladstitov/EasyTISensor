@@ -1,12 +1,11 @@
 ﻿/// <reference path="typings/evothingsble.d.ts" />
 module bleio {
-   // import ble = evothings.ble;
-    //evothings.ble
-
+  
     export class BleDescriptor {
         name: string;
         uuid: string;
-        handle:string
+        handle: number;
+       
         constructor(obj: any) {
             for (var str in obj) this[str] = obj[str];
         }
@@ -18,6 +17,10 @@ module bleio {
         uuid: string;
         name: string
         handle: number;
+        writeType: number;
+        properties: number;
+        permissions: number;
+
         onDescriptorsLoaded: Function;   
 
         private descrObj: any        
@@ -38,15 +41,14 @@ module bleio {
             this.descrObj = {};
         }
        
-        descriptorsCallbackFun( descriptors: BleDescriptor[]): void {          
+        descriptorsCallback( descriptors: BleDescriptor[]): void {          
             var CONSTS: any = this.device.CONSTS;
            
             for (var i = 0, n = descriptors.length; i < n; ++i) {
                 var descriptor: BleDescriptor = new BleDescriptor( descriptors[i]);
                 descriptor.name = CONSTS[descriptor.uuid] || descriptor.uuid;
                 this.descrObj[descriptor.uuid] = descriptor;
-                this.descriptors.push(descriptor);
-              //  this.device.__uuidMap[this.uuid + ':' + descriptor.uuid] = descriptor;
+                this.descriptors.push(descriptor);            
             }
            this.onDescriptorsLoaded && this.onDescriptorsLoaded();
 
@@ -54,13 +56,12 @@ module bleio {
 
         loadDescriptors(callBack: Function): void {
             this.onDescriptorsLoaded = callBack;
-            evothings.ble.descriptors(this.device.deviceHandle, this.handle,(descriptors) => this.descriptorsCallbackFun(descriptors),(err)=>this.device.logError(err));
+            evothings.ble.descriptors(this.device.deviceHandle, this.handle,(descriptors) => this.descriptorsCallback(descriptors),(err)=>this.device.logError(err));
         }             
 
     }
 
-   // var DATA: string = 'DATA';
-   // var NOTIFICATION:string='NOTIFICATION';
+  
     ////////////////////////////////////////////////////////////BLE Service Classs////////////////////////////////////////////////////////////////
 
     export class BleService {
@@ -102,18 +103,15 @@ module bleio {
 
             } else this.onDescriptors();
         }
-        characteristicsCallbackFun(characteristics: BleCharacteristic[]): void {
-            //--this.readCounter;
-            //this.readCounter += characteristics.length;
+        characteristicsCallback(characteristics: BleCharacteristic[]): void {        
             var CONSTS = this.device.CONSTS;
             for (var i = 0; i < characteristics.length; ++i) {
+               // console.log(characteristics[i]);
                 var characteristic: BleCharacteristic = new BleCharacteristic(this.device,characteristics[i]);
                 characteristic.name = CONSTS[characteristic.uuid];               
                 this.charsObj[characteristic.name] = characteristic;
                 this.characteristics.push(characteristic);
-               // this.device.__uuidMap[characteristic.uuid] = characteristic;
-
-                //console.log('   characteristicsCallbackFun ' + characteristic.name);
+                 //console.log('   characteristicsCallbackFun ' + characteristic.name);
                
             }
 
@@ -124,7 +122,7 @@ module bleio {
 
        
         loadCharacteristics():void  {           
-            evothings.ble.characteristics(this.device.deviceHandle, this.handle,(chs: BleCharacteristic[]) => this.characteristicsCallbackFun(chs),(err)=>this.device.logError(err));
+            evothings.ble.characteristics(this.device.deviceHandle, this.handle,(chs: BleCharacteristic[]) => this.characteristicsCallback(chs),(err)=>this.device.logError(err));
         }
 
          ///////////////////////////////////////////////////////////////
@@ -136,18 +134,10 @@ module bleio {
 
         readDescriptor(characteristic: BleCharacteristic, descriptor: BleDescriptor, win) {
             evothings.ble.readDescriptor(this.deviceHandle, descriptor.handle, win,(err) => this.logError(err));
-        }
-
-        /** Write value of characteristic. */
-       
-
-        
+        }        
         writeCharacteristic(characteristic: BleCharacteristic, value, win) {
             evothings.ble.writeCharacteristic(this.deviceHandle, characteristic.handle, value, win,(err) => this.logError(err));
-        }
-        //onWriteD(res): void {
-
-        //}
+        }       
 
         getCharacteristicDataNotification(): BleDescriptor {
             return this.getCharacteristicsByName('DATA').getDescriptorByNmae('NOTIFICATION');
@@ -173,16 +163,10 @@ module bleio {
         setCallBack(success: Function): void {
             evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicData().handle, success,(err) => this.logError(err));
         }
-       // writeDataNotigication(value: any): void {            
-         //   evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, value,(res) => this.onWriteD(res),(err) => this.logError(err));
-        //}
+      
         writeDescriptor(characteristic: BleCharacteristic, descriptor: BleDescriptor, value, win) {
             evothings.ble.writeDescriptor(this.deviceHandle, descriptor.handle, value, win,(err) => this.logError(err));
-        }
-
-       // enableNotificationData(callBack) {
-          //  evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicsByName(DATA).handle, callBack,(err) => this.logError(err));
-       // }
+        }      
         enableNotification(characteristic: BleCharacteristic, win) {
             evothings.ble.enableNotification(this.deviceHandle, characteristic.handle, win,(err) => this.logError(err));
         }
@@ -217,17 +201,15 @@ module bleio {
      
        
         private onConnected(connectInfo: { state: number; deviceHandle: number }): void {
-            if (connectInfo.state == 2) {// connected			
-                this.deviceHandle = connectInfo.deviceHandle;                        
-                evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err));  
+            if (connectInfo.state == 2) {// connected	
+             
+                    this.deviceHandle = connectInfo.deviceHandle;
+                    evothings.ble.services(this.deviceHandle,(services) => this.onServices(services),(err) => this.logError(err)); 
+                
+                
             }
             else if (connectInfo.state == 0) {// disconnected     
-               
-                // TODO: How to signal disconnect?
-                // Call error callback?
-                // Additional callback? (connect, disconnect, fail)
-                // Additional parameter on win callback with connect state?
-                // (Last one is the best option I think).
+             
                
             }
             
@@ -251,7 +233,6 @@ module bleio {
             this.currentService++;
             var serv: BleService
             if (this.services.length > this.currentService) {
-
                 serv = this.services[this.currentService];               
                 serv.onDescriptors = () => this.onServiceLoaded();
                 serv.loadCharacteristics();
@@ -269,7 +250,7 @@ module bleio {
                 service.name = CONSTS[service.uuid] || service.uuid;
                 this.servicesObj[service.name] = service;
                 this.services.push(service);
-                // this.__uuidMap[service.uuid] = service;
+                
             }
             this.loadCharacteristics();
         }
@@ -302,8 +283,10 @@ module bleio {
             this.connect();                         
         } 
 
-        reconnect(): void {
-
+        reconnect(callBack): void {
+            this.onDiscovered = callBack;
+            this.connect(); 
+           // evothings.ble.connect(this.address, callBack,(err) => this.logError(err));  
         }
         
       
@@ -315,8 +298,7 @@ module bleio {
         knownDevices: {} = {};
         connectedDevices: {} = {}
         reportOnce: boolean = false;
-        name: string = 'EasyBle';
-      //  scantime: number;
+        name: string = 'EasyBle';     
         onError: Function;
 
         logError(err): void {

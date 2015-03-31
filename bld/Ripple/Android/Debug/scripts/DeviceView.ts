@@ -33,23 +33,26 @@ module bleio {
             if (existingDevice) {
                 existingDevice.rssi = device.rssi;    
                      
-            } else {
-                if (device && device.name) {
+            } else {        
+               // console.log(device);   
                     var dev: BleDevice = new BleDevice(device.address, device.rssi, device.name);
                     this.knownDevices[device.address] = dev;
                     this.status.text('Found ' + device.name);
                     this.device = dev;
                     this.deviceView = null;
-                    this.scanner.stopScan();
-                    this.onFound(dev);
-
-                }
+                    this.stopScan();                    
+                    this.onFound(dev);        
                 
             }
            
         }      
      
-       
+        stopScan(): void {
+            this.status.text('Scan');
+            this.btnScanner.data('state', 'scan');
+            this.btnScanner.text('Scan');
+            this.scanner.stopScan(() => { });           
+        }
         private onDeviceFound(device: bleio.BleDevice): void {
             if ((device != null) && (device.name != null)) this.onFoundDevice(device);
         }
@@ -60,15 +63,11 @@ module bleio {
                 case 'scan':
                     el.data('state', 'scanning');
                     this.status.text('Scanning...');
-                    this.btnScanner.text('Stop Scan');
-                    this.scanner.stopScan();                                
+                    this.btnScanner.text('Stop Scan');                                             
                     this.scanner.startScan((device) => this.onDeviceFound(device));
                     break;
                 case 'scanning':
-                    this.status.text('Scan');                   
-                    this.btnScanner.data('state', 'scan');
-                    this.btnScanner.text('Scan');
-                    this.scanner.stopScan();
+                    this.stopScan();
                     break;              
 
             }
@@ -98,19 +97,23 @@ module bleio {
 
         }
         constructor(private device: bleio.BleDevice, private view:JQuery) {
-            this.title = $('<h2>').text(device.address).appendTo(view);
+            this.title = $('<h1>').text(device.address).appendTo(view);
             this.status = $('<h3>').text('found').appendTo(view);
-            this.btnConnect = $('<a>').data('state', 'connect').on(CLICK,(evt) => this.onConnectClick(evt)).appendTo(view);          
+            this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK,(evt) => this.onConnectClick(evt)).appendTo(view);          
             this.library = new LibraryGages();            
            // this.save = $('#save');
             
         }
+        private onReconnected(res): void {
+            console.log('reconnected ',res);           
+        }
+
         private onConnectClick(evt: JQueryEventObject): void {
             var el = $(evt.currentTarget);
             if (!this.device) return;
             switch (el.data('state')) {
                 case 'connect':
-                    if (this.device) this.device.reconnect();
+                    if (this.device.getAllServices()) this.reconnect();
                     else this.device.discover(this.library.CONST,() => this.populateServices());
                     this.status.text('connecting...');
                     this.btnConnect.data('state', 'disconnect');
@@ -124,16 +127,7 @@ module bleio {
                     break;
             }
         }
-        
-       // private activateService(id: number): void {
-           // if (isNaN(id)) return
-            //var serv: bleio.BleService = this.services[id];
-
-       // }
-       // private deactivateService(id: number): void {
-          //  if (isNaN(id)) return
-       // }
-
+     
        
         private toggleActive(evt): void{
             var el: JQuery = $(evt.target);
@@ -146,7 +140,7 @@ module bleio {
 
         private views: any = {};
         reconnect() {
-            
+            this.device.reconnect((res) => this.onReconnected(res));
         }
         
         disconnect() {
@@ -161,35 +155,19 @@ module bleio {
             this.title.text(this.device.name);
             view.addClass('services');
             var servs: bleio.BleService[] = this.device.getAllServices();
+           // console.log(servs);
             this.services = servs;           
-            var out = '<ul>';
+            var out = '';
             for (var i = 0, n = servs.length; i < n; i++) out += this.renderSevice(i, servs[i]);
-            view.html(out + '</ul>');
+            view.append($('<ul>').html(out));
             view.on(CLICK, 'a.header',(evt) => this.toggleActive(evt));
 
         }
         renderSevice(id: number, ser: bleio.BleService): string {
-            return '<li class="service"><a class="header" href="#" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
+            return '<li class="service"><a class="header" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';
         }
 
-       // private onBarometer(res): void {
-           // console.log('onBarometer ' + res);
-       // }
-
-       
-
-       
-
-
-
-    
-
-        private onSaveClick(evt: JQueryEventObject): void {
-
-        }
-        private onLinkClick(evt: JQueryEventObject): void {
-
-        }
+     
 
     }
 

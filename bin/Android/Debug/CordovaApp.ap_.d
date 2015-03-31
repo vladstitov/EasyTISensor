@@ -50,8 +50,6 @@ C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISenso
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\DeviceView.js \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\DeviceView.js.map \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\DeviceView.ts \
-C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\EasyBle.js \
-C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\EasyBle.js.map \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\index.js \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\index.js.map \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\index.ts \
@@ -65,8 +63,6 @@ C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISenso
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\TISensorTag.js \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\TISensorTag.js.map \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\TISensorTag.ts \
-C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\TISesorEvoProxy.js \
-C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\TISesorEvoProxy.js.map \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\typings \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\typings\cordova \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts\typings\evothingsble.d.ts \
