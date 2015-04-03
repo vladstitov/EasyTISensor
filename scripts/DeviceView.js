@@ -65,7 +65,7 @@ var bleio;
             this.device = device;
             this.view = view;
             this.views = {};
-            this.title = $('<h1>').text(device.address).appendTo(view);
+            this.title = $('<h1>').text(device.name).appendTo(view);
             this.status = $('<h3>').text('found').appendTo(view);
             this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK, function (evt) { return _this.onConnectClick(evt); }).appendTo(view);
             this.library = new bleio.LibraryGages();

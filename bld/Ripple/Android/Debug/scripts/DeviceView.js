@@ -65,17 +65,19 @@ var bleio;
             this.device = device;
             this.view = view;
             this.views = {};
-            this.title = $('<h1>').text(device.address).appendTo(view);
+            this.title = $('<h1>').text(device.name).appendTo(view);
             this.status = $('<h3>').text('found').appendTo(view);
             this.btnConnect = $('<a>').data('state', 'connect').addClass('btn').text('Connect').on(CLICK, function (evt) { return _this.onConnectClick(evt); }).appendTo(view);
             this.library = new bleio.LibraryGages();
-            // this.save = $('#save');
+            this.list = $('<ul>').appendTo(view);
+            this.list.on(CLICK, 'a.header', function (evt) { return _this.toggleActive(evt); });
         }
         DeviceView.prototype.getDevice = function () {
             return this.device;
         };
-        DeviceView.prototype.onReconnected = function (res) {
-            console.log('reconnected ', res);
+        DeviceView.prototype.onReconnected = function () {
+            // console.log('reconnected ', res); 
+            this.populateServices();
         };
         DeviceView.prototype.onConnectClick = function (evt) {
             var _this = this;
@@ -106,32 +108,29 @@ var bleio;
             if (el.data('type') !== 'service')
                 return;
             var name = el.data('name');
-            // console.log(name)    
             if (!this.views[name])
                 this.views[name] = this.library.createView(this.device.getServiceByName(name), el);
             this.views[name].toggle();
         };
         DeviceView.prototype.reconnect = function () {
             var _this = this;
-            this.device.reconnect(function (res) { return _this.onReconnected(res); });
+            this.device.reconnect(function () { return _this.onReconnected(); });
         };
         DeviceView.prototype.disconnect = function () {
             this.device.disconnect();
         };
         DeviceView.prototype.populateServices = function () {
-            var _this = this;
             this.status.text('Connected');
+            this.views = {};
             var view = this.view;
             this.title.text(this.device.name);
             view.addClass('services');
             var servs = this.device.getAllServices();
-            // console.log(servs);
             this.services = servs;
             var out = '';
             for (var i = 0, n = servs.length; i < n; i++)
                 out += this.renderSevice(i, servs[i]);
-            view.append($('<ul>').html(out));
-            view.on(CLICK, 'a.header', function (evt) { return _this.toggleActive(evt); });
+            this.list.html(out);
         };
         DeviceView.prototype.renderSevice = function (id, ser) {
             return '<li class="service"><a class="header" data-type="service" data-uuid="' + ser.uuid + '"  data-id="' + id + '" data-name="' + ser.name + '">' + ser.name + '</a></li>';

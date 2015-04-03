@@ -37,6 +37,7 @@ C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISenso
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\packages.config \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\plugins \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\Project_Readme.html \
+C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\README.md \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\scripts \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\VSBuildInfo.xml \
 C:\Users\VladHome\Documents\Visual Studio 2013\Projects\EasyTISensor\EasyTISensor\bld\Debug\platforms\android\assets\www\css\common.css \

@@ -1,8 +1,6 @@
 /// <reference path="typings/evothingsble.d.ts" />
 var bleio;
 (function (bleio) {
-    // import ble = evothings.ble;
-    //evothings.ble
     var BleDescriptor = (function () {
         function BleDescriptor(obj) {
             for (var str in obj)
@@ -29,7 +27,7 @@ var bleio;
                     return ds[i];
             return null;
         };
-        BleCharacteristic.prototype.descriptorsCallbackFun = function (descriptors) {
+        BleCharacteristic.prototype.descriptorsCallback = function (descriptors) {
             var CONSTS = this.device.CONSTS;
             for (var i = 0, n = descriptors.length; i < n; ++i) {
                 var descriptor = new BleDescriptor(descriptors[i]);
@@ -42,13 +40,11 @@ var bleio;
         BleCharacteristic.prototype.loadDescriptors = function (callBack) {
             var _this = this;
             this.onDescriptorsLoaded = callBack;
-            evothings.ble.descriptors(this.device.deviceHandle, this.handle, function (descriptors) { return _this.descriptorsCallbackFun(descriptors); }, function (err) { return _this.device.logError(err); });
+            evothings.ble.descriptors(this.device.deviceHandle, this.handle, function (descriptors) { return _this.descriptorsCallback(descriptors); }, function (err) { return _this.device.logError(err); });
         };
         return BleCharacteristic;
     })();
     bleio.BleCharacteristic = BleCharacteristic;
-    // var DATA: string = 'DATA';
-    // var NOTIFICATION:string='NOTIFICATION';
     ////////////////////////////////////////////////////////////BLE Service Classs////////////////////////////////////////////////////////////////
     var BleService = (function () {
         function BleService(device, obj) {
@@ -77,11 +73,10 @@ var bleio;
             else
                 this.onDescriptors();
         };
-        BleService.prototype.characteristicsCallbackFun = function (characteristics) {
-            //--this.readCounter;
-            //this.readCounter += characteristics.length;
+        BleService.prototype.characteristicsCallback = function (characteristics) {
             var CONSTS = this.device.CONSTS;
             for (var i = 0; i < characteristics.length; ++i) {
+                // console.log(characteristics[i]);
                 var characteristic = new BleCharacteristic(this.device, characteristics[i]);
                 characteristic.name = CONSTS[characteristic.uuid];
                 this.charsObj[characteristic.name] = characteristic;
@@ -92,7 +87,7 @@ var bleio;
         };
         BleService.prototype.loadCharacteristics = function () {
             var _this = this;
-            evothings.ble.characteristics(this.device.deviceHandle, this.handle, function (chs) { return _this.characteristicsCallbackFun(chs); }, function (err) { return _this.device.logError(err); });
+            evothings.ble.characteristics(this.device.deviceHandle, this.handle, function (chs) { return _this.characteristicsCallback(chs); }, function (err) { return _this.device.logError(err); });
         };
         ///////////////////////////////////////////////////////////////
         BleService.prototype.readCharacteristic = function (characteristic, win) {
@@ -103,13 +98,10 @@ var bleio;
             var _this = this;
             evothings.ble.readDescriptor(this.deviceHandle, descriptor.handle, win, function (err) { return _this.logError(err); });
         };
-        /** Write value of characteristic. */
         BleService.prototype.writeCharacteristic = function (characteristic, value, win) {
             var _this = this;
             evothings.ble.writeCharacteristic(this.deviceHandle, characteristic.handle, value, win, function (err) { return _this.logError(err); });
         };
-        //onWriteD(res): void {
-        //}
         BleService.prototype.getCharacteristicDataNotification = function () {
             return this.getCharacteristicsByName('DATA').getDescriptorByNmae('NOTIFICATION');
         };
@@ -139,16 +131,10 @@ var bleio;
             var _this = this;
             evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicData().handle, success, function (err) { return _this.logError(err); });
         };
-        // writeDataNotigication(value: any): void {            
-        //   evothings.ble.writeDescriptor(this.deviceHandle, this.getDN().handle, value,(res) => this.onWriteD(res),(err) => this.logError(err));
-        //}
         BleService.prototype.writeDescriptor = function (characteristic, descriptor, value, win) {
             var _this = this;
             evothings.ble.writeDescriptor(this.deviceHandle, descriptor.handle, value, win, function (err) { return _this.logError(err); });
         };
-        // enableNotificationData(callBack) {
-        //  evothings.ble.enableNotification(this.deviceHandle, this.getCharacteristicsByName(DATA).handle, callBack,(err) => this.logError(err));
-        // }
         BleService.prototype.enableNotification = function (characteristic, win) {
             var _this = this;
             evothings.ble.enableNotification(this.deviceHandle, characteristic.handle, win, function (err) { return _this.logError(err); });
@@ -249,8 +235,9 @@ var bleio;
             this.connect();
         };
         BleDevice.prototype.reconnect = function (callBack) {
-            var _this = this;
-            evothings.ble.connect(this.address, callBack, function (err) { return _this.logError(err); });
+            this.onDiscovered = callBack;
+            this.connect();
+            // evothings.ble.connect(this.address, callBack,(err) => this.logError(err));  
         };
         return BleDevice;
     })();
