@@ -1,6 +1,6 @@
 # EasyTISensor
 Easy ble TiSensor
-
+![alt tag](https://github.com/vladvaldtitov/EasyTISensor/blob/master/images/titag.jpg)
 For quick start with Texas Instruments Sensor Tag CC2541 SensorTag Development Kit is the first Bluetooth Smart development kit focused on wireless sensor applications 
 http://www.ti.com/tool/cc2541dk-sensor
 
